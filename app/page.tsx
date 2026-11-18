@@ -14,6 +14,9 @@ export default function HomePage() {
       </div>
 
       <noscript>
+        {/* Without JavaScript the shell cannot respond; show the real content
+            instead of an inert prompt. */}
+        <style>{`.screen-only { display: none !important }`}</style>
         <div className="mx-auto max-w-3xl px-5 py-10">
           <StaticProfile />
         </div>
