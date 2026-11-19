@@ -13,4 +13,5 @@ export const site = {
   resumeFileName: "Yvan-Maribbay-Resume.pdf",
   maxChatMessages: 8,
   maxChatChars: 800,
+  maxChatTotalChars: 6_000,
 } as const;

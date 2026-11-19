@@ -81,6 +81,20 @@ describe("terminalReducer", () => {
     expect(state.chat.status).toBe("streaming");
   });
 
+  it("chat/fail removes an empty assistant turn and records the error", () => {
+    let state = terminalReducer(initialState, { type: "chat/user", text: "hi" });
+    state = terminalReducer(state, { type: "chat/start" });
+    state = terminalReducer(state, {
+      type: "chat/fail",
+      error: "rate limited",
+    });
+
+    expect(state.chat.messages).toHaveLength(1);
+    expect(state.chat.messages[0]).toMatchObject({ role: "user", text: "hi" });
+    expect(state.chat.status).toBe("error");
+    expect(state.chat.error).toBe("rate limited");
+  });
+
   it("boot/reset removes only boot entries", () => {
     const boot = bootTextEntry("[ ok ] profile loaded", "ok");
     const user = textEntry("keep me");

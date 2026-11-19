@@ -32,6 +32,21 @@ describe("chat request validation", () => {
     );
   });
 
+  it("allows a long model turn but still rejects oversized visitor input", () => {
+    const modelReply = chatRequestSchema.safeParse({
+      messages: [
+        user("Tell me about the project."),
+        { role: "model", text: "x".repeat(900) },
+        user("And the stack?"),
+      ],
+    });
+    expect(modelReply.success).toBe(true);
+
+    expect(
+      chatRequestSchema.safeParse({ messages: [user("y".repeat(801))] }).success,
+    ).toBe(false);
+  });
+
   it("rejects a total over the conversation budget", () => {
     const messages = Array.from({ length: 8 }, () => user("x".repeat(790)));
     expect(chatRequestSchema.safeParse({ messages }).success).toBe(false);

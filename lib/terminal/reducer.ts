@@ -19,6 +19,7 @@ export type TerminalAction =
   | { type: "chat/start" }
   | { type: "chat/chunk"; text: string }
   | { type: "chat/status"; status: TerminalState["chat"]["status"]; error?: string }
+  | { type: "chat/fail"; error: string }
   | { type: "chat/reset" };
 
 export const initialState: TerminalState = {
@@ -129,6 +130,18 @@ export function terminalReducer(
         ...state,
         chat: { ...state.chat, status: action.status, error: action.error },
       };
+
+    case "chat/fail": {
+      const messages = [...state.chat.messages];
+      const last = messages[messages.length - 1];
+      // A request that never streamed leaves an empty assistant bubble behind.
+      // Remove it so the next send does not replay an empty turn.
+      if (last && last.role === "model" && last.text === "") messages.pop();
+      return {
+        ...state,
+        chat: { ...state.chat, messages, status: "error", error: action.error },
+      };
+    }
 
     case "chat/reset":
       return {

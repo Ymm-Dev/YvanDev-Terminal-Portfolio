@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { site } from "@/data/site";
 
-export const MAX_MESSAGES = 8;
+export const MAX_MESSAGES = site.maxChatMessages;
 export const MAX_CHARS_PER_MESSAGE = site.maxChatChars;
-export const MAX_TOTAL_CHARS = 6_000;
+export const MAX_TOTAL_CHARS = site.maxChatTotalChars;
 
 export const chatRequestSchema = z
   .object({
@@ -11,13 +11,24 @@ export const chatRequestSchema = z
       .array(
         z.object({
           role: z.enum(["user", "model"]),
-          text: z.string().trim().min(1).max(MAX_CHARS_PER_MESSAGE),
+          // Assistant replies can be longer than a visitor's input, but every
+          // turn still gets a hard ceiling before the total budget is checked.
+          text: z.string().trim().min(1).max(MAX_TOTAL_CHARS),
         }),
       )
       .min(1)
       .max(MAX_MESSAGES),
   })
   .superRefine((value, ctx) => {
+    for (const [index, message] of value.messages.entries()) {
+      if (message.role === "user" && message.text.length > MAX_CHARS_PER_MESSAGE) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "message is too long",
+          path: ["messages", index, "text"],
+        });
+      }
+    }
     const total = value.messages.reduce((sum, message) => sum + message.text.length, 0);
     if (total > MAX_TOTAL_CHARS) {
       ctx.addIssue({

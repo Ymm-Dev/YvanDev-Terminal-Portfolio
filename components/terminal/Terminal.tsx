@@ -10,6 +10,7 @@ import { panelDomId } from "@/components/terminal/PanelRenderer";
 import { profile } from "@/data/profile";
 import { site } from "@/data/site";
 import { OFFLINE_MESSAGE } from "@/lib/ai/offline";
+import { buildChatPayload } from "@/lib/terminal/chat-payload";
 import { runCommand } from "@/lib/terminal/execute";
 import { initialState, terminalReducer } from "@/lib/terminal/reducer";
 import { panelLabel, panelToHash, parseRoute } from "@/lib/terminal/routing";
@@ -331,17 +332,12 @@ export function Terminal() {
     if (!text) return;
     if (stateRef.current.chat.status === "streaming") return;
 
-    const prior = stateRef.current.chat.messages.map((item) => ({
-      role: item.role,
-      text: item.text,
-    }));
+    const payload = buildChatPayload(stateRef.current.chat.messages, text);
 
     dispatch({ type: "chat/user", text });
     dispatch({ type: "chat/start" });
     dispatch({ type: "chat/status", status: "streaming" });
     setStick(true);
-
-    const payload = [...prior, { role: "user" as const, text }].slice(-site.maxChatMessages);
 
     try {
       const response = await fetch("/api/chat", {
@@ -358,10 +354,17 @@ export function Terminal() {
       }
       if (response.status === 429) {
         dispatch({
-          type: "chat/status",
-          status: "error",
+          type: "chat/fail",
           error:
             "The twin is rate-limited right now. Give it a minute, or use `contact` to reach Yvan directly.",
+        });
+        return;
+      }
+      if (response.status === 400) {
+        dispatch({
+          type: "chat/fail",
+          error:
+            "That conversation is too long for the twin. Reset the chat and ask again, or use `contact` to reach Yvan directly.",
         });
         return;
       }
@@ -380,8 +383,7 @@ export function Terminal() {
       setAnnouncement("AI replied.");
     } catch {
       dispatch({
-        type: "chat/status",
-        status: "error",
+        type: "chat/fail",
         error:
           "The connection dropped before the twin finished. Try again, or use `contact` to reach Yvan directly.",
       });
