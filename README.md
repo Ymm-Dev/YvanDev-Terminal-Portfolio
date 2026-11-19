@@ -63,6 +63,9 @@ The key is read only in `app/api/chat/route.ts` and `lib/ai/gemini.ts`. The
 browser talks to `/api/chat`; it never sees the key. `/api/chat/health` returns
 only `{ ok, provider, model, configured }`.
 
+For a comparison of Gemini, Groq, and OpenRouter — including why Gemini 3.1
+Flash-Lite is the default — see [`docs/ai-providers.md`](docs/ai-providers.md).
+
 ### Swap the model
 
 Set `GEMINI_MODEL` to any text model available to your key. Nothing else changes.
