@@ -13,6 +13,7 @@ export type TerminalAction =
   | { type: "apply"; entries: Entry[]; clear?: boolean; mode?: "shell" | "chat" }
   | { type: "clear" }
   | { type: "booted" }
+  | { type: "boot/reset" }
   | { type: "mode"; mode: "shell" | "chat" }
   | { type: "chat/user"; text: string }
   | { type: "chat/start" }
@@ -71,6 +72,14 @@ export function terminalReducer(
 
     case "booted":
       return { ...state, booted: true };
+
+    case "boot/reset":
+      return {
+        ...state,
+        entries: state.entries.filter(
+          (entry) => !(entry.kind === "text" && entry.boot),
+        ),
+      };
 
     case "mode":
       return { ...state, mode: action.mode };

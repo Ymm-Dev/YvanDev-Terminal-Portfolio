@@ -15,23 +15,23 @@ import { initialState, terminalReducer } from "@/lib/terminal/reducer";
 import { panelLabel, panelToHash, parseRoute } from "@/lib/terminal/routing";
 import { complete, ghostSuggestion } from "@/lib/terminal/suggestions";
 import {
+  bootTextEntry,
   panelEntry,
-  textEntry,
   type Entry,
   type PanelRef,
 } from "@/lib/terminal/types";
 
 function bootLines(): Entry[] {
   return [
-    textEntry(`${site.shell.user}@${site.shell.host}:~$ ./init --profile=yvan`, "muted"),
-    textEntry("[ ok ] profile loaded", "ok"),
-    textEntry(`[ ok ] mounted ${profile.projects.length} projects`, "ok"),
-    textEntry(`[ ok ] mounted ${profile.experience.length} roles`, "ok"),
-    textEntry(
+    bootTextEntry(`${site.shell.user}@${site.shell.host}:~$ ./init --profile=yvan`, "muted"),
+    bootTextEntry("[ ok ] profile loaded", "ok"),
+    bootTextEntry(`[ ok ] mounted ${profile.projects.length} projects`, "ok"),
+    bootTextEntry(`[ ok ] mounted ${profile.experience.length} roles`, "ok"),
+    bootTextEntry(
       `[ ok ] mounted ${profile.education.length} education record${profile.education.length === 1 ? "" : "s"}`,
       "ok",
     ),
-    textEntry("[ ok ] shell ready — type 'help' or tap a shortcut below", "ok"),
+    bootTextEntry("[ ok ] shell ready — type 'help' or tap a shortcut below", "ok"),
   ];
 }
 
@@ -67,7 +67,7 @@ export function Terminal() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const stateRef = useRef(state);
   const bootFinished = useRef(false);
-  const bootStarted = useRef(false);
+  const skipRef = useRef<(() => void) | null>(null);
   // Programmatic scrolls must not be mistaken for the visitor scrolling near
   // the bottom, or the auto-follow effect would immediately undo them.
   const suppressStick = useRef(false);
@@ -102,6 +102,8 @@ export function Terminal() {
     }, delay);
   }, []);
 
+  const skipBoot = useCallback(() => skipRef.current?.(), []);
+
   /* ------------------------------ health ------------------------------ */
 
   useEffect(() => {
@@ -127,13 +129,19 @@ export function Terminal() {
   /* ------------------------------- boot ------------------------------- */
 
   useEffect(() => {
-    if (bootStarted.current) return;
-    bootStarted.current = true;
+    if (bootFinished.current) return;
 
     const controller = new AbortController();
     const timers: number[] = [];
     let index = 0;
     const lines = bootLines();
+
+    const cleanup = () => {
+      controller.abort();
+      for (const id of timers) window.clearTimeout(id);
+      timers.length = 0;
+      skipRef.current = null;
+    };
 
     const focusSoon = () => {
       window.setTimeout(() => focusInput(), 80);
@@ -142,18 +150,11 @@ export function Terminal() {
     function completeBoot(extra: Entry[], routeHash: string) {
       if (bootFinished.current) return;
       bootFinished.current = true;
-      controller.abort();
-      for (const id of timers) window.clearTimeout(id);
-      timers.length = 0;
+      cleanup();
 
       if (extra.length) dispatch({ type: "apply", entries: extra });
       dispatch({ type: "booted" });
       setBooting(false);
-      try {
-        sessionStorage.setItem("yvan:boot", "1");
-      } catch {
-        /* private mode — ignore */
-      }
 
       const routed = routeHash ? parseRoute(routeHash) : null;
       const landing: PanelRef = routed ?? { type: "welcome" };
@@ -176,7 +177,12 @@ export function Terminal() {
       const line = lines[index];
       index += 1;
       if (line) dispatch({ type: "apply", entries: [line] });
-      timers.push(window.setTimeout(tick, index === 1 ? 140 : 110));
+
+      if (index >= lines.length) {
+        timers.push(window.setTimeout(() => completeBoot([], ""), 120));
+        return;
+      }
+      timers.push(window.setTimeout(tick, 80));
     }
 
     function skip() {
@@ -184,33 +190,29 @@ export function Terminal() {
       completeBoot(lines.slice(index), "");
     }
 
+    // Remove any boot lines left by an interrupted Strict Mode or Fast
+    // Refresh mount before replaying the sequence.
+    dispatch({ type: "boot/reset" });
+    skipRef.current = skip;
+
     const hash = window.location.hash;
-    let seen = false;
-    try {
-      seen = sessionStorage.getItem("yvan:boot") === "1";
-    } catch {
-      seen = false;
-    }
     const params = new URLSearchParams(window.location.search);
 
     if (hash) {
       completeBoot([], hash);
-      return () => controller.abort();
+      return cleanup;
     }
 
-    if (prefersReducedMotion() || seen || params.get("noBoot") === "1") {
+    if (prefersReducedMotion() || params.get("noBoot") === "1") {
       completeBoot([], "");
-      return () => controller.abort();
+      return cleanup;
     }
 
     window.addEventListener("keydown", skip, { signal: controller.signal });
     window.addEventListener("pointerdown", skip, { signal: controller.signal });
-    timers.push(window.setTimeout(tick, 180));
+    timers.push(window.setTimeout(tick, 80));
 
-    return () => {
-      controller.abort();
-      for (const id of timers) window.clearTimeout(id);
-    };
+    return cleanup;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -538,14 +540,26 @@ export function Terminal() {
               ghost={ghost}
               inputRef={inputRef}
             />
-            <p
-              id="terminal-hint"
-              className="mt-1.5 hidden text-[10.5px] text-faint sm:block"
+            <div
+              className={`mt-1.5 flex min-h-5 items-center gap-3 text-[10.5px] text-faint ${
+                booting ? "" : "hidden sm:flex"
+              }`}
             >
-              ↑↓ history · tab complete · ctrl+l clear · esc{" "}
-              {state.mode === "chat" ? "leave chat" : "blur"}
-              {booting ? " · booting…" : ""}
-            </p>
+              <p id="terminal-hint" className="hidden sm:block">
+                ↑↓ history · tab complete · ctrl+l clear · esc{" "}
+                {state.mode === "chat" ? "leave chat" : "blur"}
+                {booting ? " · booting…" : ""}
+              </p>
+              {booting ? (
+                <button
+                  type="button"
+                  onClick={skipBoot}
+                  className="text-green underline decoration-dotted underline-offset-4 hover:text-ink"
+                >
+                  skip intro →
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <p aria-live="polite" className="sr-only">

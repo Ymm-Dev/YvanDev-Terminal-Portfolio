@@ -30,7 +30,7 @@ function EntryView({ entry }: { entry: Entry }) {
         <p
           className={`whitespace-pre-wrap break-words text-[13px] leading-6 ${
             toneClass[entry.tone ?? "default"] ?? "text-ink"
-          }`}
+          } ${entry.boot ? "boot-line" : ""}`}
         >
           {entry.text}
         </p>

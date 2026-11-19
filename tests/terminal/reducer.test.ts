@@ -4,7 +4,7 @@ import {
   pruneEntries,
   terminalReducer,
 } from "@/lib/terminal/reducer";
-import { MAX_ENTRIES, panelEntry, textEntry } from "@/lib/terminal/types";
+import { MAX_ENTRIES, bootTextEntry, panelEntry, textEntry } from "@/lib/terminal/types";
 
 describe("terminalReducer", () => {
   it("echoes the command and records history", () => {
@@ -79,6 +79,16 @@ describe("terminalReducer", () => {
     const last = state.chat.messages[state.chat.messages.length - 1];
     expect(last).toMatchObject({ role: "model", text: "Hello there" });
     expect(state.chat.status).toBe("streaming");
+  });
+
+  it("boot/reset removes only boot entries", () => {
+    const boot = bootTextEntry("[ ok ] profile loaded", "ok");
+    const user = textEntry("keep me");
+    const state = terminalReducer(
+      { ...initialState, entries: [boot, user] },
+      { type: "boot/reset" },
+    );
+    expect(state.entries).toEqual([user]);
   });
 
   it("resets the conversation", () => {

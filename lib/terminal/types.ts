@@ -21,6 +21,7 @@ export interface TextEntry {
   kind: "text";
   text: string;
   tone?: Tone;
+  boot?: boolean;
 }
 
 export interface InputEntry {
@@ -90,6 +91,10 @@ export function entryId(prefix = "e"): string {
 
 export function textEntry(text: string, tone: Tone = "default"): TextEntry {
   return { id: entryId("t"), kind: "text", text, tone };
+}
+
+export function bootTextEntry(text: string, tone: Tone = "default"): TextEntry {
+  return { ...textEntry(text, tone), boot: true };
 }
 
 export function noticeEntry(
