@@ -10,6 +10,10 @@ describe("system prompt", () => {
     expect(prompt).toContain(profile.title);
   });
 
+  it("requires first-person answers and forbids third-person references", () => {
+    expect(prompt).toContain("Never refer to Yvan in the third person");
+  });
+
   it("carries the resume facts", () => {
     expect(prompt).toContain("Thurston");
     expect(prompt).toContain("Cagayan State University");
