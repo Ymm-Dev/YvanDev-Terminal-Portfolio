@@ -2,6 +2,7 @@
 
 const chips = [
   { command: "recruiter", label: "recruiter" },
+  { command: "about", label: "about" },
   { command: "projects", label: "projects" },
   { command: "skills", label: "skills" },
   { command: "experience", label: "experience" },

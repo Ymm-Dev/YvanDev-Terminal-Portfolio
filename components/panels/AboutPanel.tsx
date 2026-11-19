@@ -14,7 +14,7 @@ export function AboutPanel({ id }: { id?: string }) {
       id={id}
       label="about"
       meta="yvan.txt"
-      footer={<span>cat about.txt · written by Yvan, drafted for approval</span>}
+      footer={<span>cat about.txt · written by Yvan</span>}
     >
       <div className="grid gap-5 sm:grid-cols-[180px_minmax(0,1fr)]">
         <figure className="order-2 sm:order-1">

@@ -7,6 +7,7 @@ import { profile } from "@/data/profile";
 
 const quick = [
   { command: "recruiter", label: "Recruiter brief", hint: "40-second version" },
+  { command: "about", label: "About", hint: "who I am" },
   { command: "projects", label: "Projects", hint: `${profile.projects.length} projects` },
   { command: "skills", label: "Skills", hint: "by category" },
   { command: "experience", label: "Experience", hint: "2 roles" },

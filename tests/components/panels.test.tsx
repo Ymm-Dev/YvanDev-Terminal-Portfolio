@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { TerminalContext, type TerminalApi } from "@/components/terminal/context";
 import { ChatPanel } from "@/components/panels/ChatPanel";
+import { WelcomePanel } from "@/components/panels/WelcomePanel";
 import { ProjectsPanel } from "@/components/panels/ProjectsPanel";
 import { RecruiterPanel } from "@/components/panels/RecruiterPanel";
 import { PrintBrief } from "@/components/PrintBrief";
@@ -43,6 +44,19 @@ function mount(ui: ReactNode, overrides: Partial<TerminalApi> = {}) {
   render(<TerminalContext.Provider value={api}>{ui}</TerminalContext.Provider>);
   return api;
 }
+
+describe("welcome panel", () => {
+  it("puts About between Recruiter brief and Projects", () => {
+    mount(<WelcomePanel />);
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent ?? "")
+      .filter((text) => /Recruiter brief|About|Projects/.test(text));
+    expect(labels.some((text) => text.includes("About"))).toBe(true);
+    expect(labels[0]).toContain("Recruiter brief");
+    expect(labels[2]).toContain("Projects");
+  });
+});
 
 describe("projects panel", () => {
   it("links every project to its public repository", () => {
