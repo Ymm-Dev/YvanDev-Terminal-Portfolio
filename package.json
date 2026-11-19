@@ -2,6 +2,15 @@
   "name": "yvan-portfolio",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
+  "author": "Yvan Maribbay",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ymm-Dev/YvanDev-Terminal-Portfolio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ymm-Dev/YvanDev-Terminal-Portfolio/issues"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

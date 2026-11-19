@@ -1,18 +1,44 @@
+# dependencies
 node_modules
+
+# build output
 .next
 out
 build
-.DS_Store
-*.pem
+*.tsbuildinfo
+next-env.d.ts
+
+# tests
+coverage
+playwright-report
+test-results
+
+# secrets — never commit real keys
+.env
+.env.*
+!.env.example
+
+# internal process artifacts
+.superpowers/
+docs/
+AGENTS.md
+
+# personal content — portrait, logo, résumé
+public/yvan/
+
+# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-.env
-.env*.local
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# deploy / misc
 .vercel
-*.tsbuildinfo
-next-env.d.ts
-coverage
-playwright-report
-test-results
+*.pem

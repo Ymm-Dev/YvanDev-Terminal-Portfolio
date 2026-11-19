@@ -4,15 +4,25 @@ A developer portfolio that behaves like a shell. Visitors type commands (or clic
 shortcuts) and the output is rich, interactive HTML panels: projects, experience,
 skills, a recruiter brief, and an AI twin.
 
+Source: <https://github.com/Ymm-Dev/YvanDev-Terminal-Portfolio>
+
 - **Terminal-first.** There is no separate "normal" portfolio page. The shell is
   the interface; the panels are the content.
 - **Every command is clickable.** Visitors never need to type to reach a section.
-- **AI twin with an honest failure mode.** With a Gemini key the twin streams real
+- **AI twin with an honest failure mode.** With a Gemini key the twin streams
   answers from Yvan's profile. Without a key it says so plainly and points to
   `contact` — it never fakes a conversation.
 - **Accessible and printable.** Keyboard navigation, skip link, live
   announcements, `prefers-reduced-motion` support, and a dedicated one-page
   print brief.
+
+## Tech stack
+
+- Next.js 16 (App Router) and React 19
+- TypeScript and Tailwind CSS v4
+- Gemini via `@google/genai`, with a server-only streaming route
+- Zod for request validation
+- Vitest and Testing Library; Playwright for UI smoke checks
 
 ## Run it
 
@@ -63,9 +73,6 @@ The key is read only in `app/api/chat/route.ts` and `lib/ai/gemini.ts`. The
 browser talks to `/api/chat`; it never sees the key. `/api/chat/health` returns
 only `{ ok, provider, model, configured }`.
 
-For a comparison of Gemini, Groq, and OpenRouter — including why Gemini 3.1
-Flash-Lite is the default — see [`docs/ai-providers.md`](docs/ai-providers.md).
-
 ### Swap the model
 
 Set `GEMINI_MODEL` to any text model available to your key. Nothing else changes.
@@ -94,16 +101,28 @@ changing the call sites. The comment in the module marks the seam.
 `data/profile.ts` is the only source of facts. The UI, the AI system prompt, the
 static `<noscript>` profile, and the print brief all read from it.
 
-- Prose in `data/profile.ts` was reviewed and approved by Yvan. Get his sign-off
-  before changing any of it, and never invent a metric or link.
-- Every project links to its public GitHub repository, and ChikAI and Bantay
-  also link to their live demos. The `repo: pending` fallback stays in the UI
-  for any future project that has no URL yet.
+- Keep the prose factual. Never invent a metric, employer, date, technology, or
+  link.
+- Every project links to its public GitHub repository. ChikAI and Bantay also
+  link to their live demos.
 - Availability is published as “Open to work”, so the title bar, welcome panel,
   recruiter brief, print brief, `neofetch`, and the AI twin all report it.
   Setting `availability.published` to `false` hides it everywhere.
-- Assets in `public/yvan/` are copies; the originals in `~/Downloads` are
-  untouched.
+
+## Personal assets
+
+The portrait, logo, and résumé are intentionally not committed to this
+repository. They live under `public/yvan/`:
+
+```text
+public/yvan/profile.png
+public/yvan/logo.png
+public/yvan/yvan-maribbay-resume.pdf
+```
+
+Add them locally to enable the portrait and résumé download. The terminal,
+panels, AI twin, tests, and build all work without them; only those personal
+visuals and the download link are absent.
 
 ## Print
 
@@ -113,7 +132,7 @@ profile via the `<noscript>` copy and the server-rendered `sr-only` block.
 
 ## Project layout
 
-```
+```text
 app/
   api/chat/            streaming chat route + health probe
   layout.tsx           fonts, metadata, JSON-LD
@@ -137,3 +156,12 @@ lib/
 - Do not create a `NEXT_PUBLIC_GEMINI_API_KEY`; it would be bundled into the
   client.
 - No database, auth, analytics, or contact-form backend is used.
+- The personal assets listed above must be supplied at deploy time if the live
+  site should show the portrait, logo, and résumé.
+
+## License
+
+The source code is licensed under the [MIT License](LICENSE).
+
+Profile prose, personal data, the portrait, the logo, and the résumé are
+copyright Yvan Maribbay and are not licensed for reuse.
