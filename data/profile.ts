@@ -256,7 +256,7 @@ const profileData: Profile = {
       },
       {
         label: "LinkedIn",
-        href: "https://www.linkedin.com/in/yvan-maribbay",
+        href: "https://www.linkedin.com/in/yvan-maribbay-8029692b7",
         handle: "in/yvan-maribbay",
       },
     ],
