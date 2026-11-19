@@ -5,6 +5,7 @@ shortcuts) and the output is rich, interactive HTML panels: projects, experience
 skills, a recruiter brief, and an AI twin.
 
 Source: <https://github.com/Ymm-Dev/YvanDev-Terminal-Portfolio>
+Live: <https://yvanterminal.vercel.app>
 
 - **Terminal-first.** There is no separate "normal" portfolio page. The shell is
   the interface; the panels are the content.
@@ -111,8 +112,8 @@ static `<noscript>` profile, and the print brief all read from it.
 
 ## Personal assets
 
-The portrait, logo, and résumé are intentionally not committed to this
-repository. They live under `public/yvan/`:
+The portrait, logo, and résumé are committed under `public/yvan/` so the site
+serves them directly:
 
 ```text
 public/yvan/profile.png
@@ -120,9 +121,8 @@ public/yvan/logo.png
 public/yvan/yvan-maribbay-resume.pdf
 ```
 
-Add them locally to enable the portrait and résumé download. The terminal,
-panels, AI twin, tests, and build all work without them; only those personal
-visuals and the download link are absent.
+They are personal content. The MIT license covers the source code; these files
+are copyright Yvan Maribbay and are not licensed for reuse.
 
 ## Print
 
@@ -156,8 +156,7 @@ lib/
 - Do not create a `NEXT_PUBLIC_GEMINI_API_KEY`; it would be bundled into the
   client.
 - No database, auth, analytics, or contact-form backend is used.
-- The personal assets listed above must be supplied at deploy time if the live
-  site should show the portrait, logo, and résumé.
+- The live site is <https://yvanterminal.vercel.app>.
 
 ## License
 

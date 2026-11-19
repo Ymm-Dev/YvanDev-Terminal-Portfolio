@@ -4,6 +4,7 @@
   "private": true,
   "license": "MIT",
   "author": "Yvan Maribbay",
+  "homepage": "https://yvanterminal.vercel.app",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ymm-Dev/YvanDev-Terminal-Portfolio.git"
