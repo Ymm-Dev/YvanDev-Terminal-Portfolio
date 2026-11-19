@@ -5,7 +5,7 @@ shortcuts) and the output is rich, interactive HTML panels: projects, experience
 skills, a recruiter brief, and an AI twin.
 
 Source: <https://github.com/Ymm-Dev/YvanDev-Terminal-Portfolio>
-Live: <https://yvanterminal.vercel.app>
+Live: <https://ymmdev-terminal.vercel.app/>
 
 - **Terminal-first.** There is no separate "normal" portfolio page. The shell is
   the interface; the panels are the content.
@@ -156,7 +156,7 @@ lib/
 - Do not create a `NEXT_PUBLIC_GEMINI_API_KEY`; it would be bundled into the
   client.
 - No database, auth, analytics, or contact-form backend is used.
-- The live site is <https://yvanterminal.vercel.app>.
+- The live site is <https://ymmdev-terminal.vercel.app/>.
 
 ## License
 
