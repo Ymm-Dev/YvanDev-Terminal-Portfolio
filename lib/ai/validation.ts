@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { site } from "@/data/site";
 
 export const MAX_MESSAGES = 8;
-export const MAX_CHARS_PER_MESSAGE = 800;
+export const MAX_CHARS_PER_MESSAGE = site.maxChatChars;
 export const MAX_TOTAL_CHARS = 6_000;
 
 export const chatRequestSchema = z

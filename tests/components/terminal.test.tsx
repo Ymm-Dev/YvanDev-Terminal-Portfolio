@@ -48,4 +48,22 @@ describe("terminal boot", () => {
 
     expect(document.querySelector("#panel-welcome")).not.toBeNull();
   });
+
+  it("caps chat input at 800 characters", async () => {
+    render(<Terminal />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1200);
+    });
+
+    const input = screen.getByRole("textbox");
+    fireEvent.change(input, { target: { value: "chat" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(input).toHaveAttribute("maxlength", "800");
+  });
 });

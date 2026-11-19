@@ -109,7 +109,28 @@ describe("chat panel", () => {
     expect(
       screen.getByRole("button", { name: "Tell me about yourself." }),
     ).toBeDisabled();
-    expect(screen.getByText(/AI stand-in/i)).toBeInTheDocument();
+    expect(screen.getByText(/not the real person/i)).toBeInTheDocument();
+  });
+
+  it("introduces the twin in the first person and shows timestamps", () => {
+    mount(<ChatPanel />, {
+      twin: { status: "online", provider: "gemini", model: "gemini-3.1-flash-lite" },
+      chat: {
+        status: "idle",
+        messages: [
+          {
+            id: "u1",
+            role: "user",
+            text: "Hello",
+            at: Date.UTC(2026, 10, 19, 11, 31),
+          },
+        ],
+      },
+    });
+
+    expect(screen.getByText(/Yvan's AI twin/i)).toBeInTheDocument();
+    expect(screen.getByText(/not the real person/i)).toBeInTheDocument();
+    expect(screen.getByText(/\d{2}:\d{2}/)).toBeInTheDocument();
   });
 
   it("offers a reset once a transcript exists", () => {

@@ -15,6 +15,7 @@ export function CommandInput({
   ghost,
   busy,
   inputRef,
+  maxLength,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -27,6 +28,7 @@ export function CommandInput({
   ghost: string;
   busy?: boolean;
   inputRef: RefObject<HTMLInputElement | null>;
+  maxLength?: number;
 }) {
   const [caretAtEnd, setCaretAtEnd] = useState(true);
 
@@ -123,6 +125,7 @@ export function CommandInput({
           id="terminal-input"
           name="command"
           value={value}
+          maxLength={maxLength}
           onChange={(event) => {
             onChange(event.target.value);
             requestAnimationFrame(updateCaret);

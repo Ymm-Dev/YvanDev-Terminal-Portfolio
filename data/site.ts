@@ -12,4 +12,5 @@ export const site = {
   },
   resumeFileName: "Yvan-Maribbay-Resume.pdf",
   maxChatMessages: 8,
+  maxChatChars: 800,
 } as const;

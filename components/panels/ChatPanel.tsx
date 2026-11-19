@@ -12,6 +12,14 @@ const starters = [
   "Are you open to new opportunities?",
 ];
 
+function formatTime(at: number) {
+  return new Date(at).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 export function ChatPanel({ id }: { id?: string }) {
   const { chat, send, resetChat, twin } = useTerminal();
   const streaming = chat.status === "streaming";
@@ -51,8 +59,9 @@ export function ChatPanel({ id }: { id?: string }) {
       <div className="space-y-4">
         <div className="border-l-2 border-purple/40 pl-3">
           <p className="text-[12.5px] text-muted">
-            I&apos;m the AI twin of {profile.name.split(" ")[0]} — an AI stand-in,
-            not the real person. I answer from his portfolio data and will say so
+            I&apos;m {profile.name.split(" ")[0]}&apos;s AI twin — a model of me,
+            not the real person. Ask about my background, skills, projects, or
+            experience. I answer only from my portfolio data and will tell you
             when I don&apos;t know.
           </p>
         </div>
@@ -106,7 +115,8 @@ export function ChatPanel({ id }: { id?: string }) {
                     isUser ? "text-cyan" : "text-purple"
                   }`}
                 >
-                  {isUser ? "you ▸" : "yvan-ai ▸"}
+                  {isUser ? "you ▸" : "yvan-ai ▸"}{" "}
+                  <span className="text-faint">{formatTime(message.at)}</span>
                 </span>
                 <div className="min-w-0">
                   <p className="whitespace-pre-wrap break-words text-[13.5px] leading-relaxed text-ink">

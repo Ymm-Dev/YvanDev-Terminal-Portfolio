@@ -539,6 +539,7 @@ export function Terminal() {
               mode={state.mode}
               ghost={ghost}
               inputRef={inputRef}
+              maxLength={state.mode === "chat" ? site.maxChatChars : undefined}
             />
             <div
               className={`mt-1.5 flex min-h-5 items-center gap-3 text-[10.5px] text-faint ${
