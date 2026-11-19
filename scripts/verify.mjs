@@ -62,6 +62,16 @@ for (const width of [320, 375, 390, 768, 1024, 1440]) {
   await page.goto(`${BASE}?noBoot=1`, { waitUntil: "networkidle" });
   await page.waitForTimeout(500);
 
+  // Welcome shortcuts run recruiter, about, projects in that order.
+  const quickLabels = await page.locator("#panel-welcome button").allTextContents();
+  const recruiterAt = quickLabels.findIndex((text) => text.includes("Recruiter brief"));
+  const aboutAt = quickLabels.findIndex((text) => text.includes("About"));
+  const projectsAt = quickLabels.findIndex((text) => text.includes("Projects"));
+  assert(
+    recruiterAt > -1 && aboutAt === recruiterAt + 1 && projectsAt === aboutAt + 1,
+    `welcome shortcut order is ${quickLabels.join(" | ")}`,
+  );
+
   // Skip link becomes visible on focus and points at the input.
   await page.keyboard.press("Tab");
   const skip = page.locator("a", { hasText: "Skip to terminal input" });
@@ -160,6 +170,47 @@ for (const width of [320, 375, 390, 768, 1024, 1440]) {
 
   assert(errors.length === 0, `keyboard console errors: ${errors.join(" | ")}`);
   notes.push("keyboard ok");
+  await context.close();
+}
+
+/* ------------------------------ boot -------------------------------- */
+
+{
+  const { context, page, errors } = await pageAt(1280, 900);
+
+  // First load: the boot sequence runs, and a visible skip control exists.
+  await page.goto(BASE, { waitUntil: "domcontentloaded" });
+  const skipIntro = page.getByRole("button", { name: /skip intro/i });
+  assert(await skipIntro.isVisible().catch(() => false), "skip intro button missing during boot");
+  await page.getByText("./init --profile=yvan").waitFor({ timeout: 2000 });
+  assert(
+    (await page.getByText("./init --profile=yvan").count()) === 1,
+    "boot did not start on first load",
+  );
+  await page.waitForSelector("#panel-welcome", { timeout: 5000 });
+
+  // Reload: boot replays instead of being skipped by session state.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByText("./init --profile=yvan").waitFor({ timeout: 2000 });
+  assert(
+    (await page.getByText("./init --profile=yvan").count()) === 1,
+    "boot did not replay on reload",
+  );
+  assert(
+    await page.getByRole("button", { name: /skip intro/i }).isVisible().catch(() => false),
+    "skip intro button missing after reload",
+  );
+  await page.waitForSelector("#panel-welcome", { timeout: 5000 });
+
+  // Skip: lands on the welcome panel without waiting for the sequence.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page
+    .getByRole("button", { name: /skip intro/i })
+    .dispatchEvent("click");
+  await page.waitForSelector("#panel-welcome", { timeout: 1500 });
+
+  assert(errors.length === 0, `boot console errors: ${errors.join(" | ")}`);
+  notes.push("boot replay and skip ok");
   await context.close();
 }
 
