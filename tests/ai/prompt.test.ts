@@ -16,9 +16,17 @@ describe("system prompt", () => {
     expect(prompt).toContain("AQRO");
   });
 
-  it("declares availability unpublished and forbids guessing", () => {
-    expect(prompt).toContain("NOT PUBLISHED");
-    expect(prompt).not.toMatch(/availability:\s*(open|freelance|employed)/i);
+  it("states the published availability", () => {
+    expect(prompt).toContain("Availability: Open to work (published by Yvan).");
+  });
+
+  it("forbids guessing when availability is unpublished", () => {
+    const hidden = buildSystemPrompt({
+      ...profile,
+      availability: { published: false },
+    });
+    expect(hidden).toContain("NOT PUBLISHED");
+    expect(hidden).not.toMatch(/open to work/i);
   });
 
   it("tells the model it is an AI stand-in", () => {

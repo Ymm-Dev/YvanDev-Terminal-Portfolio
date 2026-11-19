@@ -2,11 +2,12 @@
 
 import { PanelFrame } from "@/components/ui/PanelFrame";
 import { useTerminal } from "@/components/terminal/context";
+import { AvailabilityBadge } from "@/components/ui/AvailabilityBadge";
 import { profile } from "@/data/profile";
 
 const quick = [
   { command: "recruiter", label: "Recruiter brief", hint: "40-second version" },
-  { command: "projects", label: "Projects", hint: "3 featured builds" },
+  { command: "projects", label: "Projects", hint: `${profile.projects.length} projects` },
   { command: "skills", label: "Skills", hint: "by category" },
   { command: "experience", label: "Experience", hint: "2 roles" },
   { command: "chat", label: "AI twin", hint: "ask me anything" },
@@ -39,6 +40,9 @@ export function WelcomePanel({ id }: { id?: string }) {
             {profile.name}
           </h2>
           <p className="mt-0.5 text-[13.5px] text-green">{profile.title}</p>
+          <div className="mt-2">
+            <AvailabilityBadge />
+          </div>
         </div>
 
         <p className="prose-terminal max-w-[62ch]">{profile.summary}</p>

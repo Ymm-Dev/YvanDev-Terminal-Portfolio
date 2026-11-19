@@ -56,7 +56,7 @@ Copy `.env.example` to `.env.local` (never commit it) and restart the dev server
 | --- | --- |
 | `AI_PROVIDER` | `offline` (default example) or `gemini`. Unset means "Gemini if a key exists, otherwise offline". |
 | `GEMINI_API_KEY` | Google AI Studio key. Server-only; never prefix with `NEXT_PUBLIC_`. |
-| `GEMINI_MODEL` | Optional model override. Defaults to `gemini-2.5-flash`. |
+| `GEMINI_MODEL` | Optional model override. Defaults to `gemini-3.1-flash-lite` (Gemini retires older IDs for new API keys, so update this if you see a 404). |
 | `NEXT_PUBLIC_SITE_URL` | Absolute site URL used for metadata and Open Graph. |
 
 The key is read only in `app/api/chat/route.ts` and `lib/ai/gemini.ts`. The
@@ -91,12 +91,14 @@ changing the call sites. The comment in the module marks the seam.
 `data/profile.ts` is the only source of facts. The UI, the AI system prompt, the
 static `<noscript>` profile, and the print brief all read from it.
 
-- Prose marked `// TODO(approval)` was drafted from the resume and should be
-  reviewed by Yvan before launch.
-- Project repositories are intentionally non-clickable `repo: pending` chips
-  until real URLs exist. There are no placeholder `href`s.
-- Availability is unpublished, so the title-bar status pill is not rendered and
-  the twin says it does not know.
+- Prose in `data/profile.ts` was reviewed and approved by Yvan. Get his sign-off
+  before changing any of it, and never invent a metric or link.
+- Every project links to its public GitHub repository, and ChikAI and Bantay
+  also link to their live demos. The `repo: pending` fallback stays in the UI
+  for any future project that has no URL yet.
+- Availability is published as “Open to work”, so the title bar, welcome panel,
+  recruiter brief, print brief, `neofetch`, and the AI twin all report it.
+  Setting `availability.published` to `false` hides it everywhere.
 - Assets in `public/yvan/` are copies; the originals in `~/Downloads` are
   untouched.
 

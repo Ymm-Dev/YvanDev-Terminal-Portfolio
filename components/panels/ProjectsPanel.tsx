@@ -195,7 +195,7 @@ export function ProjectDetailPanel({
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-line pt-3">
           <ProjectActions project={project} />
           <span className="text-[11px] text-faint">
-            details drafted from the resume · pending approval
+            repo links open on GitHub
           </span>
         </div>
       </div>

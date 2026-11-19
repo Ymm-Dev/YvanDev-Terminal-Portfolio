@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { PanelFrame } from "@/components/ui/PanelFrame";
-import { profile } from "@/data/profile";
+import { hasAvailability, profile } from "@/data/profile";
 import { site } from "@/data/site";
 
 export function NeofetchPanel({ id }: { id?: string }) {
@@ -14,7 +14,7 @@ export function NeofetchPanel({ id }: { id?: string }) {
     ["projects", `${profile.projects.length} featured`],
     ["experience", `${profile.experience.length} roles`],
     ["degree", "BSc Computer Science"],
-    ["availability", "not published"],
+    ["availability", hasAvailability() ? (profile.availability.label ?? "published") : "not published"],
     ["uptime", "since 2022"],
   ];
 

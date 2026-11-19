@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import type { ChatProvider, StreamRequest } from "./provider";
 
-export const DEFAULT_MODEL = "gemini-2.5-flash";
+export const DEFAULT_MODEL = "gemini-3.1-flash-lite";
 
 export function createGeminiProvider(): ChatProvider {
   const apiKey = process.env.GEMINI_API_KEY;

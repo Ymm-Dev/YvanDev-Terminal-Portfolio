@@ -45,15 +45,16 @@ function mount(ui: ReactNode, overrides: Partial<TerminalApi> = {}) {
 }
 
 describe("projects panel", () => {
-  it("shows a non-interactive pending chip instead of a fake link", () => {
+  it("links every project to its public repository", () => {
     mount(<ProjectsPanel />);
-    const pending = document.querySelectorAll(".pending");
-    expect(pending).toHaveLength(profile.projects.length);
-    for (const chip of pending) {
-      expect(chip.tagName).toBe("SPAN");
-      expect(chip.textContent).toContain("repo: pending");
+    expect(document.querySelectorAll(".pending")).toHaveLength(0);
+    for (const project of profile.projects) {
+      expect(project.repo).toBeTruthy();
+      expect(project.repo).not.toMatch(/\.git$/);
+      expect(document.querySelector(`a[href="${project.repo}"]`)).not.toBeNull();
     }
-    expect(document.querySelector('a[href*="pending"]')).toBeNull();
+    expect(document.querySelector('a[href="https://chik-ai.vercel.app"]')).not.toBeNull();
+    expect(document.querySelector('a[href="https://bantay-mu.vercel.app"]')).not.toBeNull();
   });
 
   it("opens a project detail through the inspect button", async () => {
@@ -83,6 +84,7 @@ describe("recruiter panel", () => {
       "href",
       profile.resumeUrl,
     );
+    expect(screen.getByText("Open to work")).toBeInTheDocument();
   });
 });
 
@@ -135,6 +137,7 @@ describe("print brief", () => {
     expect(screen.getByText(profile.name)).toBeInTheDocument();
     expect(screen.getByText(profile.title)).toBeInTheDocument();
     expect(screen.getByText(profile.summary)).toBeInTheDocument();
+    expect(screen.getByText("Open to work")).toBeInTheDocument();
     expect(document.body.textContent).toContain(profile.awards[0]);
     expect(document.body.textContent).toContain(profile.contact.email);
   });

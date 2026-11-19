@@ -132,12 +132,31 @@ for (const width of [320, 375, 390, 768, 1024, 1440]) {
     "clicking inspect did not open a detail panel",
   );
 
-  // Pending repo chip must not be interactive.
+  // Every project exposes a real repository link, and no pending chip remains.
   await page.fill("#terminal-input", "projects");
   await page.press("#terminal-input", "Enter");
   await page.waitForTimeout(500);
-  const pending = page.locator("#panel-projects .pending").first();
-  assert((await pending.evaluate((el) => el.tagName)) === "SPAN", "repo: pending is not a span");
+  assert(
+    (await page.locator("#panel-projects .pending").count()) === 0,
+    "repo: pending chips should be gone",
+  );
+  const repoLinks = page.locator('#panel-projects a.link-action[href^="https://github.com/Ymm-Dev/"]');
+  assert(
+    (await repoLinks.count()) >= 6,
+    "project repo links missing",
+  );
+  assert(
+    (await page.locator('#panel-projects a[href="https://chik-ai.vercel.app"]').count()) >= 1,
+    "ChikAI live link missing",
+  );
+  assert(
+    (await page.locator('#panel-projects a[href="https://bantay-mu.vercel.app"]').count()) >= 1,
+    "Bantay live link missing",
+  );
+  assert(
+    (await page.locator('[aria-label="Availability: Open to work"]').count()) >= 1,
+    "availability badge missing",
+  );
 
   assert(errors.length === 0, `keyboard console errors: ${errors.join(" | ")}`);
   notes.push("keyboard ok");
@@ -206,6 +225,20 @@ for (const width of [320, 375, 390, 768, 1024, 1440]) {
 
 {
   const { context, page } = await pageAt(1280, 900);
+  // The repo's own .env.local has a live key, so simulate an unconfigured
+  // deployment here to keep the offline path covered.
+  await page.route("**/api/chat/health", (route) =>
+    route.fulfill({
+      json: { ok: false, provider: "offline", model: null, configured: false },
+    }),
+  );
+  await page.route("**/api/chat", (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "offline" }),
+    }),
+  );
   await page.goto(`${BASE}?noBoot=1`, { waitUntil: "networkidle" });
   await page.waitForTimeout(600);
   await page.fill("#terminal-input", "chat");

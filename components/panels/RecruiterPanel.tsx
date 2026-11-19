@@ -1,6 +1,7 @@
 "use client";
 
 import { useTerminal } from "@/components/terminal/context";
+import { AvailabilityBadge } from "@/components/ui/AvailabilityBadge";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { PanelFrame } from "@/components/ui/PanelFrame";
 import { TechChip } from "@/components/ui/TechChip";
@@ -27,6 +28,9 @@ export function RecruiterPanel({ id }: { id?: string }) {
               {profile.name}
             </h3>
             <p className="text-[13px] text-green">{profile.title}</p>
+            <div className="mt-2">
+              <AvailabilityBadge />
+            </div>
           </div>
 
           <div className="space-y-2">

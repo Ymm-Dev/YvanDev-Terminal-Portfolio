@@ -1,6 +1,7 @@
 "use client";
 
 import { TwinBadge } from "@/components/ui/TwinBadge";
+import { AvailabilityBadge } from "@/components/ui/AvailabilityBadge";
 import type { TwinInfo } from "@/components/terminal/context";
 
 export function TitleBar({
@@ -26,7 +27,8 @@ export function TitleBar({
         <span>~/portfolio</span>
       </p>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-2">
+        <AvailabilityBadge compact />
         <button
           type="button"
           onClick={onRecruiter}

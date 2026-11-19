@@ -1,4 +1,4 @@
-import { profile } from "@/data/profile";
+import { hasAvailability, profile } from "@/data/profile";
 
 /**
  * Always server-rendered, always present in the DOM, visible only in print.
@@ -15,6 +15,11 @@ export function PrintBrief() {
       <header className="mb-3 border-b border-black pb-2">
         <h1 className="text-[21pt] font-semibold leading-none">{profile.name}</h1>
         <p className="mt-1 text-[11.5pt]">{profile.title}</p>
+        {hasAvailability() ? (
+          <p className="mt-[1pt] text-[10pt] font-semibold">
+            {profile.availability.label}
+          </p>
+        ) : null}
         <p className="mt-[2pt] text-[9pt]">
           {profile.contact.email} ·{" "}
           {profile.contact.links.map((link) => compactLink(link.href)).join(" · ")}

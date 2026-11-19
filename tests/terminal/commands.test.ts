@@ -72,11 +72,11 @@ describe("command registry", () => {
     expect(result.entries).toHaveLength(2);
   });
 
-  it("does not claim availability", () => {
+  it("states the published availability", () => {
     const result = runCommand("whoami", ctx);
     const text = result.entries.map((e) => ("text" in e ? e.text : "")).join("\n");
-    expect(text).toContain("not published");
-    expect(text).not.toMatch(/open to opportunities/i);
+    expect(text).toContain("Availability: Open to work");
+    expect(text).not.toContain("not published");
   });
 
   it("suggests close matches for a typo", () => {

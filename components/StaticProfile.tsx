@@ -1,3 +1,4 @@
+import { AvailabilityBadge } from "@/components/ui/AvailabilityBadge";
 import { profile } from "@/data/profile";
 
 /**
@@ -12,6 +13,9 @@ export function StaticProfile() {
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold text-green">{profile.name}</h1>
         <p className="text-muted">{profile.title}</p>
+        <div className="pt-1">
+          <AvailabilityBadge />
+        </div>
         <p>{profile.summary}</p>
         <p className="text-muted">
           <a href={`mailto:${profile.contact.email}`}>{profile.contact.email}</a>
