@@ -9,6 +9,7 @@ import { ThemePanel } from "@/components/panels/ThemePanel";
 import { ProjectsPanel } from "@/components/panels/ProjectsPanel";
 import { GamesPanel } from "@/components/panels/GamesPanel";
 import { DirectionPad } from "@/components/games/DirectionPad";
+import { SnakeGame } from "@/components/games/SnakeGame";
 import { RecruiterPanel } from "@/components/panels/RecruiterPanel";
 import { PrintBrief } from "@/components/PrintBrief";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -231,6 +232,29 @@ describe("direction pad", () => {
     for (const button of screen.getAllByRole("button")) {
       expect(button).toBeDisabled();
     }
+  });
+});
+
+describe("snake panel", () => {
+  it("autofocuses a labelled board and reports ready", () => {
+    render(<SnakeGame />);
+    const board = screen.getByRole("group", { name: "Snake board" });
+    expect(board).toHaveAttribute("tabindex", "0");
+    expect(board).toHaveFocus();
+    expect(screen.getByTestId("snake-status")).toHaveTextContent("ready");
+  });
+
+  it("starts, pauses with space, and keeps score visible", async () => {
+    render(<SnakeGame />);
+    const board = screen.getByRole("group", { name: "Snake board" });
+
+    await userEvent.click(screen.getByRole("button", { name: /^start/i }));
+    expect(screen.getByTestId("snake-status")).toHaveTextContent("running");
+
+    board.focus();
+    await userEvent.keyboard(" ");
+    expect(screen.getByTestId("snake-status")).toHaveTextContent("paused");
+    expect(screen.getByText(/score 0/i)).toBeInTheDocument();
   });
 });
 
