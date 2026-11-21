@@ -41,6 +41,40 @@ describe("command registry", () => {
     expect(commands.some((command) => command.name === "gui")).toBe(false);
   });
 
+  it("exposes the arcade commands and aliases", () => {
+    const names = commands.map((command) => command.name);
+    for (const name of ["games", "snake", "tictactoe", "2048"]) {
+      expect(names).toContain(name);
+    }
+    expect(resolveCommand("arcade").command?.name).toBe("games");
+    expect(resolveCommand("play").command?.name).toBe("games");
+    expect(resolveCommand("ttt").command?.name).toBe("tictactoe");
+    expect(resolveCommand("twenty48").command?.name).toBe("2048");
+  });
+
+  it("opens the arcade and hands focus to direct games", () => {
+    const arcade = runCommand("games", ctx);
+    expect(arcade.entries[0]).toMatchObject({
+      kind: "panel",
+      panel: { type: "games" },
+    });
+    expect(arcade.hash).toBe("#games");
+
+    for (const [input, panel] of [
+      ["snake", "snake"],
+      ["tictactoe", "tictactoe"],
+      ["2048", "2048"],
+    ] as const) {
+      const result = runCommand(input, ctx);
+      expect(result.entries[0]).toMatchObject({
+        kind: "panel",
+        panel: { type: panel },
+      });
+      expect(result.hash).toBe(`#${panel}`);
+      expect(result.focus).toBe("panel");
+    }
+  });
+
   it("opens the theme picker and applies a named theme", () => {
     const open = runCommand("theme", ctx);
     expect(open.entries[0]).toMatchObject({

@@ -13,6 +13,7 @@ const quick = [
   { command: "experience", label: "Experience", hint: "2 roles" },
   { command: "chat", label: "AI twin", hint: "ask me anything" },
   { command: "theme", label: "Theme", hint: "4 palettes" },
+  { command: "games", label: "Arcade", hint: "3 quick games" },
   { command: "resume", label: "Resume", hint: "PDF download" },
 ];
 

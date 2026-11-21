@@ -16,6 +16,10 @@ const routes: Array<[PanelRef, string]> = [
   [{ type: "chat" }, "#chat"],
   [{ type: "neofetch" }, "#neofetch"],
   [{ type: "theme" }, "#theme"],
+  [{ type: "games" }, "#games"],
+  [{ type: "snake" }, "#snake"],
+  [{ type: "tictactoe" }, "#tictactoe"],
+  [{ type: "2048" }, "#2048"],
 ];
 
 describe("panel routes", () => {

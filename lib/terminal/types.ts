@@ -15,7 +15,11 @@ export type PanelRef =
   | { type: "recruiter" }
   | { type: "chat" }
   | { type: "neofetch" }
-  | { type: "theme" };
+  | { type: "theme" }
+  | { type: "games" }
+  | { type: "snake" }
+  | { type: "tictactoe" }
+  | { type: "2048" };
 
 export type PanelType = PanelRef["type"];
 

@@ -5,6 +5,7 @@ import { ChatPanel } from "@/components/panels/ChatPanel";
 import { ContactPanel } from "@/components/panels/ContactPanel";
 import { EducationPanel } from "@/components/panels/EducationPanel";
 import { ExperiencePanel } from "@/components/panels/ExperiencePanel";
+import { GamesPanel } from "@/components/panels/GamesPanel";
 import { HelpPanel } from "@/components/panels/HelpPanel";
 import { NeofetchPanel } from "@/components/panels/NeofetchPanel";
 import { ProjectDetailPanel, ProjectsPanel } from "@/components/panels/ProjectsPanel";
@@ -50,6 +51,8 @@ export function PanelRenderer({ panel }: { panel: PanelRef }) {
       return <NeofetchPanel id={id} />;
     case "theme":
       return <ThemePanel id={id} />;
+    case "games":
+      return <GamesPanel id={id} />;
     default:
       return null;
   }

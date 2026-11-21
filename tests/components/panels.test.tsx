@@ -7,6 +7,8 @@ import { ChatPanel } from "@/components/panels/ChatPanel";
 import { WelcomePanel } from "@/components/panels/WelcomePanel";
 import { ThemePanel } from "@/components/panels/ThemePanel";
 import { ProjectsPanel } from "@/components/panels/ProjectsPanel";
+import { GamesPanel } from "@/components/panels/GamesPanel";
+import { DirectionPad } from "@/components/games/DirectionPad";
 import { RecruiterPanel } from "@/components/panels/RecruiterPanel";
 import { PrintBrief } from "@/components/PrintBrief";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -190,6 +192,45 @@ describe("copy button", () => {
     await waitFor(() => {
       expect(screen.getByText("copied")).toBeInTheDocument();
     });
+  });
+});
+
+describe("games panel", () => {
+  it("lists the three games with their controls", () => {
+    mount(<GamesPanel />);
+    expect(screen.getByRole("button", { name: /Snake/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Tic-Tac-Toe/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /2048/ })).toBeInTheDocument();
+  });
+
+  it("starts a game through the terminal", async () => {
+    const api = mount(<GamesPanel />);
+    await userEvent.click(screen.getByRole("button", { name: /Snake/ }));
+    expect(api.run).toHaveBeenCalledWith("snake");
+  });
+});
+
+describe("direction pad", () => {
+  it("reports every direction through real buttons", async () => {
+    const onDirection = vi.fn();
+    render(<DirectionPad onDirection={onDirection} />);
+
+    for (const [label, direction] of [
+      ["Up", "up"],
+      ["Down", "down"],
+      ["Left", "left"],
+      ["Right", "right"],
+    ] as const) {
+      await userEvent.click(screen.getByRole("button", { name: label }));
+      expect(onDirection).toHaveBeenCalledWith(direction);
+    }
+  });
+
+  it("can be disabled with the board", () => {
+    render(<DirectionPad onDirection={vi.fn()} disabled />);
+    for (const button of screen.getAllByRole("button")) {
+      expect(button).toBeDisabled();
+    }
   });
 });
 

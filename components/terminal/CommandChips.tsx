@@ -9,6 +9,7 @@ const chips = [
   { command: "contact", label: "contact" },
   { command: "chat", label: "ai twin" },
   { command: "theme", label: "theme" },
+  { command: "games", label: "arcade" },
   { command: "help", label: "help" },
 ];
 
