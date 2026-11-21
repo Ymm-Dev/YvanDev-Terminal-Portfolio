@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { TerminalContext, type TerminalApi } from "@/components/terminal/context";
@@ -10,6 +10,7 @@ import { ProjectsPanel } from "@/components/panels/ProjectsPanel";
 import { GamesPanel } from "@/components/panels/GamesPanel";
 import { DirectionPad } from "@/components/games/DirectionPad";
 import { SnakeGame } from "@/components/games/SnakeGame";
+import { TicTacToeGame } from "@/components/games/TicTacToeGame";
 import { RecruiterPanel } from "@/components/panels/RecruiterPanel";
 import { PrintBrief } from "@/components/PrintBrief";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -255,6 +256,52 @@ describe("snake panel", () => {
     await userEvent.keyboard(" ");
     expect(screen.getByTestId("snake-status")).toHaveTextContent("paused");
     expect(screen.getByText(/score 0/i)).toBeInTheDocument();
+  });
+});
+
+describe("tic-tac-toe panel", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("places X, waits for the shell, then answers with O", async () => {
+    vi.useFakeTimers();
+    render(<TicTacToeGame />);
+
+    const centre = screen.getByRole("button", {
+      name: /row 2, column 2/i,
+    });
+    fireEvent.click(centre);
+    expect(centre).toHaveTextContent("X");
+    expect(screen.getByTestId("ttt-status")).toHaveTextContent(/shell/i);
+
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
+
+    const marks = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent?.trim());
+    expect(marks).toContain("O");
+    expect(screen.getByTestId("ttt-status")).toHaveTextContent(/your turn/i);
+  });
+
+  it("resets the board for a new round", async () => {
+    vi.useFakeTimers();
+    render(<TicTacToeGame />);
+
+    fireEvent.click(screen.getByRole("button", { name: /row 1, column 1/i }));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /new round/i }));
+    expect(screen.getByTestId("ttt-status")).toHaveTextContent(/your turn/i);
+    for (const button of screen.getAllByRole("button")) {
+      if (/row \d, column \d/i.test(button.getAttribute("aria-label") ?? "")) {
+        expect(button).toHaveTextContent(/^\s*$/);
+      }
+    }
   });
 });
 
