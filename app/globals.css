@@ -30,6 +30,33 @@
     "Segoe UI", sans-serif;
 }
 
+/* Card previews set data-theme on themselves; Midnight needs an explicit block
+   so it renders its own palette even while another theme is active. */
+[data-theme="midnight"] {
+  color-scheme: dark;
+  --color-bg: #0a0b0d;
+  --color-surface: #101216;
+  --color-surface-2: #15181d;
+  --color-line: #1e2228;
+  --color-line-bright: #2a3038;
+  --color-ink: #d7dbe0;
+  --color-muted: #8a94a3;
+  --color-faint: #78838f;
+  --color-green: #4ade80;
+  --color-cyan: #22d3ee;
+  --color-purple: #a78bfa;
+  --color-amber: #fbbf24;
+  --color-red: #f87171;
+  --color-overlay: rgb(255 255 255 / 0.014);
+  --color-grid: rgb(255 255 255 / 0.028);
+  --color-selection-bg: rgb(74 222 128 / 0.28);
+  --color-selection-ink: #f4fff8;
+  --color-shadow: rgb(0 0 0 / 0.9);
+  --color-scanline: rgb(255 255 255 / 0.018);
+  --color-inset-from: #1b2128;
+  --color-inset-to: #0c0e11;
+}
+
 [data-theme="paper"] {
   color-scheme: light;
   --color-bg: #f4efe4;

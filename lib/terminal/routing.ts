@@ -13,6 +13,7 @@ const simpleRoutes = new Set([
   "recruiter",
   "chat",
   "neofetch",
+  "theme",
 ]);
 
 export function panelToHash(panel: PanelRef): string {
@@ -80,6 +81,8 @@ export function panelLabel(panel: PanelRef): string {
       return "AI twin";
     case "neofetch":
       return "Neofetch";
+    case "theme":
+      return "Theme";
     default:
       return "Panel";
   }

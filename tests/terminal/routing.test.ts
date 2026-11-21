@@ -15,6 +15,7 @@ const routes: Array<[PanelRef, string]> = [
   [{ type: "recruiter" }, "#recruiter"],
   [{ type: "chat" }, "#chat"],
   [{ type: "neofetch" }, "#neofetch"],
+  [{ type: "theme" }, "#theme"],
 ];
 
 describe("panel routes", () => {

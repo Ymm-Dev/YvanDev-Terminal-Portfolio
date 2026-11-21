@@ -12,6 +12,7 @@ const quick = [
   { command: "skills", label: "Skills", hint: "by category" },
   { command: "experience", label: "Experience", hint: "2 roles" },
   { command: "chat", label: "AI twin", hint: "ask me anything" },
+  { command: "theme", label: "Theme", hint: "4 palettes" },
   { command: "resume", label: "Resume", hint: "PDF download" },
 ];
 

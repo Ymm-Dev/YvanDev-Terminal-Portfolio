@@ -1,5 +1,6 @@
 import { profile, hasAvailability } from "@/data/profile";
 import { site } from "@/data/site";
+import { isThemeName, THEME_NAMES, themeLabel } from "@/lib/theme";
 import { panelEntry, textEntry, type CommandResult } from "./types";
 
 export interface CommandContext {
@@ -137,6 +138,40 @@ export const commands: Command[] = [
       announce: "Recruiter brief opened.",
       hash: "#recruiter",
     }),
+  },
+  {
+    name: "theme",
+    category: "system",
+    summary: "Change the terminal theme",
+    usage: "theme [midnight|paper|amber|cobalt]",
+    run: (args) => {
+      const requested = args.trim().toLowerCase();
+
+      if (!requested) {
+        return {
+          entries: [panelEntry({ type: "theme" })],
+          announce: "Theme picker opened.",
+          hash: "#theme",
+        };
+      }
+
+      if (!isThemeName(requested)) {
+        return {
+          entries: [
+            textEntry(`no theme named "${requested}"`, "warn"),
+            textEntry(`available: ${THEME_NAMES.join(" · ")}`, "muted"),
+          ],
+          announce: `No theme named ${requested}.`,
+        };
+      }
+
+      return {
+        entries: [textEntry(`theme set to ${themeLabel(requested)}.`, "ok")],
+        theme: requested,
+        focus: "panel",
+        announce: `${themeLabel(requested)} theme applied.`,
+      };
+    },
   },
   {
     name: "resume",

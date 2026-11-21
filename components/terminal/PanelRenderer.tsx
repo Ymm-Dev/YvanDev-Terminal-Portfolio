@@ -10,6 +10,7 @@ import { NeofetchPanel } from "@/components/panels/NeofetchPanel";
 import { ProjectDetailPanel, ProjectsPanel } from "@/components/panels/ProjectsPanel";
 import { RecruiterPanel } from "@/components/panels/RecruiterPanel";
 import { SkillsPanel } from "@/components/panels/SkillsPanel";
+import { ThemePanel } from "@/components/panels/ThemePanel";
 import { WelcomePanel } from "@/components/panels/WelcomePanel";
 import type { PanelRef } from "@/lib/terminal/types";
 
@@ -47,6 +48,8 @@ export function PanelRenderer({ panel }: { panel: PanelRef }) {
       return <ChatPanel id={id} />;
     case "neofetch":
       return <NeofetchPanel id={id} />;
+    case "theme":
+      return <ThemePanel id={id} />;
     default:
       return null;
   }

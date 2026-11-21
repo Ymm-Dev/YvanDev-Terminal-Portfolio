@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { TerminalContext, type TerminalApi } from "@/components/terminal/context";
 import { ChatPanel } from "@/components/panels/ChatPanel";
 import { WelcomePanel } from "@/components/panels/WelcomePanel";
+import { ThemePanel } from "@/components/panels/ThemePanel";
 import { ProjectsPanel } from "@/components/panels/ProjectsPanel";
 import { RecruiterPanel } from "@/components/panels/RecruiterPanel";
 import { PrintBrief } from "@/components/PrintBrief";
@@ -55,6 +56,32 @@ describe("welcome panel", () => {
     expect(labels.some((text) => text.includes("About"))).toBe(true);
     expect(labels[0]).toContain("Recruiter brief");
     expect(labels[2]).toContain("Projects");
+  });
+
+  it("offers the theme picker instead of a second portfolio", () => {
+    mount(<WelcomePanel />);
+    expect(
+      screen.getByRole("button", { name: /Theme/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Graphical portfolio/i)).toBeNull();
+  });
+});
+
+describe("theme panel", () => {
+  it("lists all four themes and marks the current one", () => {
+    mount(<ThemePanel />);
+    for (const label of ["Midnight", "Paper", "Amber", "Cobalt"]) {
+      expect(screen.getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
+    }
+    expect(
+      screen.getByRole("button", { name: /Midnight/ }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("asks the terminal to apply the chosen theme", async () => {
+    const api = mount(<ThemePanel />);
+    await userEvent.click(screen.getByRole("button", { name: /Paper/ }));
+    expect(api.run).toHaveBeenCalledWith("theme paper");
   });
 });
 

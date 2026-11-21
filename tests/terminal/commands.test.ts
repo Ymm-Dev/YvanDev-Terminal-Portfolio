@@ -21,6 +21,7 @@ describe("command registry", () => {
         "whoami",
         "chat",
         "recruiter",
+        "theme",
         "clear",
         "ls",
         "history",
@@ -34,6 +35,38 @@ describe("command registry", () => {
   it("resolves aliases", () => {
     expect(resolveCommand("stack").command?.name).toBe("skills");
     expect(resolveCommand("work").command?.name).toBe("projects");
+  });
+
+  it("does not expose the removed graphical portfolio command", () => {
+    expect(commands.some((command) => command.name === "gui")).toBe(false);
+  });
+
+  it("opens the theme picker and applies a named theme", () => {
+    const open = runCommand("theme", ctx);
+    expect(open.entries[0]).toMatchObject({
+      kind: "panel",
+      panel: { type: "theme" },
+    });
+    expect(open.hash).toBe("#theme");
+
+    const apply = runCommand("theme paper", ctx);
+    expect(apply.theme).toBe("paper");
+    expect(apply.hash).toBeUndefined();
+    const text = apply.entries
+      .map((entry) => ("text" in entry ? entry.text : ""))
+      .join("\n");
+    expect(text).toContain("Paper");
+  });
+
+  it("warns when a theme name is unknown", () => {
+    const result = runCommand("theme nope", ctx);
+    expect(result.theme).toBeUndefined();
+    const text = result.entries
+      .map((entry) => ("text" in entry ? entry.text : ""))
+      .join("\n");
+    for (const name of ["midnight", "paper", "amber", "cobalt"]) {
+      expect(text).toContain(name);
+    }
   });
 
   it("resolves sudo hire-me", () => {
