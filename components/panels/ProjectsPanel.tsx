@@ -63,7 +63,7 @@ export function ProjectsPanel({ id }: { id?: string }) {
             <div className="flex gap-3">
               <div
                 aria-hidden
-                className="grid size-12 shrink-0 place-items-center rounded-[2px] border border-line bg-[radial-gradient(circle_at_30%_20%,#1b2128,#0c0e11)] text-[13px] tracking-widest text-green/80 group-hover:border-green/40 group-hover:text-green sm:size-14"
+                className="panel-inset grid size-12 shrink-0 place-items-center rounded-[2px] border border-line text-[13px] tracking-widest text-green/80 group-hover:border-green/40 group-hover:text-green sm:size-14"
               >
                 {initials(project.name)}
               </div>

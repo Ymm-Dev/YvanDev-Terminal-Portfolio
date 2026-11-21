@@ -1,7 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fira_Code, Inter } from "next/font/google";
 import { profile } from "@/data/profile";
 import { site } from "@/data/site";
+import {
+  THEME_BACKGROUNDS,
+  THEME_NAMES,
+  THEME_STORAGE_KEY,
+} from "@/lib/theme";
 import "./globals.css";
 
 const fira = Fira_Code({
@@ -16,6 +21,10 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  themeColor: THEME_BACKGROUNDS.midnight,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -65,12 +74,20 @@ const personJsonLd = {
   knowsAbout: profile.skills.flatMap((group) => group.items),
 };
 
+// Runs before the shell renders so a saved theme never flashes Midnight first.
+const themeScript = `(function(){try{var k=${JSON.stringify(THEME_STORAGE_KEY)};var v=window.localStorage.getItem(k);var names=${JSON.stringify(THEME_NAMES)};var colors=${JSON.stringify(THEME_BACKGROUNDS)};if(v&&names.indexOf(v)>-1&&v!=="midnight"){document.documentElement.dataset.theme=v}if(v&&colors[v]){var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",colors[v])}}}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${fira.variable} ${inter.variable}`}>
+    <html
+      lang="en"
+      className={`${fira.variable} ${inter.variable}`}
+      suppressHydrationWarning
+    >
       <body className="font-mono">
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <a
           href="#terminal-input"
           className="screen-only sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:border focus:border-green focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:text-ink"
