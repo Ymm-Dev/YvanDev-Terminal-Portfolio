@@ -1,11 +1,17 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { TerminalContext, type TerminalApi } from "@/components/terminal/context";
 import { ChatPanel } from "@/components/panels/ChatPanel";
 import { WelcomePanel } from "@/components/panels/WelcomePanel";
+import { ThemePanel } from "@/components/panels/ThemePanel";
 import { ProjectsPanel } from "@/components/panels/ProjectsPanel";
+import { GamesPanel } from "@/components/panels/GamesPanel";
+import { DirectionPad } from "@/components/games/DirectionPad";
+import { SnakeGame } from "@/components/games/SnakeGame";
+import { TicTacToeGame } from "@/components/games/TicTacToeGame";
+import { Game2048 } from "@/components/games/Game2048";
 import { RecruiterPanel } from "@/components/panels/RecruiterPanel";
 import { PrintBrief } from "@/components/PrintBrief";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -55,6 +61,32 @@ describe("welcome panel", () => {
     expect(labels.some((text) => text.includes("About"))).toBe(true);
     expect(labels[0]).toContain("Recruiter brief");
     expect(labels[2]).toContain("Projects");
+  });
+
+  it("offers the theme picker instead of a second portfolio", () => {
+    mount(<WelcomePanel />);
+    expect(
+      screen.getByRole("button", { name: /Theme/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Graphical portfolio/i)).toBeNull();
+  });
+});
+
+describe("theme panel", () => {
+  it("lists all four themes and marks the current one", () => {
+    mount(<ThemePanel />);
+    for (const label of ["Midnight", "Paper", "Amber", "Cobalt"]) {
+      expect(screen.getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
+    }
+    expect(
+      screen.getByRole("button", { name: /Midnight/ }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("asks the terminal to apply the chosen theme", async () => {
+    const api = mount(<ThemePanel />);
+    await userEvent.click(screen.getByRole("button", { name: /Paper/ }));
+    expect(api.run).toHaveBeenCalledWith("theme paper");
   });
 });
 
@@ -163,6 +195,138 @@ describe("copy button", () => {
     await waitFor(() => {
       expect(screen.getByText("copied")).toBeInTheDocument();
     });
+  });
+});
+
+describe("games panel", () => {
+  it("lists the three games with their controls", () => {
+    mount(<GamesPanel />);
+    expect(screen.getByRole("button", { name: /Snake/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Tic-Tac-Toe/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /2048/ })).toBeInTheDocument();
+  });
+
+  it("starts a game through the terminal", async () => {
+    const api = mount(<GamesPanel />);
+    await userEvent.click(screen.getByRole("button", { name: /Snake/ }));
+    expect(api.run).toHaveBeenCalledWith("snake");
+  });
+});
+
+describe("direction pad", () => {
+  it("reports every direction through real buttons", async () => {
+    const onDirection = vi.fn();
+    render(<DirectionPad onDirection={onDirection} />);
+
+    for (const [label, direction] of [
+      ["Up", "up"],
+      ["Down", "down"],
+      ["Left", "left"],
+      ["Right", "right"],
+    ] as const) {
+      await userEvent.click(screen.getByRole("button", { name: label }));
+      expect(onDirection).toHaveBeenCalledWith(direction);
+    }
+  });
+
+  it("can be disabled with the board", () => {
+    render(<DirectionPad onDirection={vi.fn()} disabled />);
+    for (const button of screen.getAllByRole("button")) {
+      expect(button).toBeDisabled();
+    }
+  });
+});
+
+describe("snake panel", () => {
+  it("autofocuses a labelled board and reports ready", () => {
+    render(<SnakeGame />);
+    const board = screen.getByRole("group", { name: "Snake board" });
+    expect(board).toHaveAttribute("tabindex", "0");
+    expect(board).toHaveFocus();
+    expect(screen.getByTestId("snake-status")).toHaveTextContent("ready");
+  });
+
+  it("starts, pauses with space, and keeps score visible", async () => {
+    render(<SnakeGame />);
+    const board = screen.getByRole("group", { name: "Snake board" });
+
+    await userEvent.click(screen.getByRole("button", { name: /^start/i }));
+    expect(screen.getByTestId("snake-status")).toHaveTextContent("running");
+
+    board.focus();
+    await userEvent.keyboard(" ");
+    expect(screen.getByTestId("snake-status")).toHaveTextContent("paused");
+    expect(screen.getByTestId("snake-score")).toHaveTextContent("score 0");
+  });
+});
+
+describe("tic-tac-toe panel", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("places X, waits for the shell, then answers with O", async () => {
+    vi.useFakeTimers();
+    render(<TicTacToeGame />);
+
+    const centre = screen.getByRole("button", {
+      name: /row 2, column 2/i,
+    });
+    fireEvent.click(centre);
+    expect(centre).toHaveTextContent("X");
+    expect(screen.getByTestId("ttt-status")).toHaveTextContent(/shell/i);
+
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
+
+    const marks = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent?.trim());
+    expect(marks).toContain("O");
+    expect(screen.getByTestId("ttt-status")).toHaveTextContent(/your turn/i);
+  });
+
+  it("resets the board for a new round", async () => {
+    vi.useFakeTimers();
+    render(<TicTacToeGame />);
+
+    fireEvent.click(screen.getByRole("button", { name: /row 1, column 1/i }));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /new round/i }));
+    expect(screen.getByTestId("ttt-status")).toHaveTextContent(/your turn/i);
+    for (const button of screen.getAllByRole("button")) {
+      if (/row \d, column \d/i.test(button.getAttribute("aria-label") ?? "")) {
+        expect(button).toHaveTextContent(/^\s*$/);
+      }
+    }
+  });
+});
+
+describe("2048 panel", () => {
+  it("autofocuses the board and merges tiles with the arrow keys", () => {
+    render(<Game2048 rng={() => 0} />);
+    const board = screen.getByRole("group", { name: "2048 board" });
+    expect(board).toHaveFocus();
+    expect(screen.getByTestId("2048-score")).toHaveTextContent("score 0");
+
+    fireEvent.keyDown(board, { key: "ArrowRight" });
+    expect(screen.getByTestId("2048-score")).toHaveTextContent("score 4");
+    expect(screen.getByTestId("2048-status")).toHaveTextContent(/playing/i);
+  });
+
+  it("resets score when starting a new game", async () => {
+    render(<Game2048 rng={() => 0} />);
+    const board = screen.getByRole("group", { name: "2048 board" });
+    fireEvent.keyDown(board, { key: "ArrowRight" });
+    expect(screen.getByTestId("2048-score")).toHaveTextContent("score 4");
+
+    await userEvent.click(screen.getByRole("button", { name: /new game/i }));
+    expect(screen.getByTestId("2048-score")).toHaveTextContent("score 0");
+    expect(screen.getByTestId("2048-status")).toHaveTextContent(/playing/i);
   });
 });
 

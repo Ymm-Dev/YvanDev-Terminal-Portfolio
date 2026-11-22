@@ -1,5 +1,6 @@
 import { profile, hasAvailability } from "@/data/profile";
 import { site } from "@/data/site";
+import { isThemeName, THEME_NAMES, themeLabel } from "@/lib/theme";
 import { panelEntry, textEntry, type CommandResult } from "./types";
 
 export interface CommandContext {
@@ -139,6 +140,40 @@ export const commands: Command[] = [
     }),
   },
   {
+    name: "theme",
+    category: "system",
+    summary: "Change the terminal theme",
+    usage: "theme [midnight|paper|amber|cobalt]",
+    run: (args) => {
+      const requested = args.trim().toLowerCase();
+
+      if (!requested) {
+        return {
+          entries: [panelEntry({ type: "theme" })],
+          announce: "Theme picker opened.",
+          hash: "#theme",
+        };
+      }
+
+      if (!isThemeName(requested)) {
+        return {
+          entries: [
+            textEntry(`no theme named "${requested}"`, "warn"),
+            textEntry(`available: ${THEME_NAMES.join(" · ")}`, "muted"),
+          ],
+          announce: `No theme named ${requested}.`,
+        };
+      }
+
+      return {
+        entries: [textEntry(`theme set to ${themeLabel(requested)}.`, "ok")],
+        theme: requested,
+        focus: "panel",
+        announce: `${themeLabel(requested)} theme applied.`,
+      };
+    },
+  },
+  {
     name: "resume",
     aliases: ["cv.pdf"],
     category: "portfolio",
@@ -220,6 +255,56 @@ export const commands: Command[] = [
               textEntry(`${String(index + 1).padStart(3, " ")}  ${item}`),
             ),
       announce: `${ctx.history.length} commands in history.`,
+    }),
+  },
+  {
+    name: "games",
+    aliases: ["arcade", "play"],
+    category: "fun",
+    summary: "Open the terminal arcade",
+    usage: "games",
+    run: () => ({
+      entries: [panelEntry({ type: "games" })],
+      announce: "Arcade opened with Snake, Tic-Tac-Toe, and 2048.",
+      hash: "#games",
+    }),
+  },
+  {
+    name: "snake",
+    category: "fun",
+    summary: "Play Snake",
+    usage: "snake",
+    run: () => ({
+      entries: [panelEntry({ type: "snake" })],
+      announce: "Snake ready. Arrow keys or WASD to steer.",
+      hash: "#snake",
+      focus: "panel",
+    }),
+  },
+  {
+    name: "tictactoe",
+    aliases: ["ttt"],
+    category: "fun",
+    summary: "Play Tic-Tac-Toe against the shell",
+    usage: "tictactoe",
+    run: () => ({
+      entries: [panelEntry({ type: "tictactoe" })],
+      announce: "Tic-Tac-Toe ready. You are X and move first.",
+      hash: "#tictactoe",
+      focus: "panel",
+    }),
+  },
+  {
+    name: "2048",
+    aliases: ["twenty48"],
+    category: "fun",
+    summary: "Play 2048",
+    usage: "2048",
+    run: () => ({
+      entries: [panelEntry({ type: "2048" })],
+      announce: "2048 ready. Arrow keys or WASD to merge tiles.",
+      hash: "#2048",
+      focus: "panel",
     }),
   },
   {

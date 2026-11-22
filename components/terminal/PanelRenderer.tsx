@@ -5,11 +5,16 @@ import { ChatPanel } from "@/components/panels/ChatPanel";
 import { ContactPanel } from "@/components/panels/ContactPanel";
 import { EducationPanel } from "@/components/panels/EducationPanel";
 import { ExperiencePanel } from "@/components/panels/ExperiencePanel";
+import { GamesPanel } from "@/components/panels/GamesPanel";
+import { Game2048 } from "@/components/games/Game2048";
+import { SnakeGame } from "@/components/games/SnakeGame";
+import { TicTacToeGame } from "@/components/games/TicTacToeGame";
 import { HelpPanel } from "@/components/panels/HelpPanel";
 import { NeofetchPanel } from "@/components/panels/NeofetchPanel";
 import { ProjectDetailPanel, ProjectsPanel } from "@/components/panels/ProjectsPanel";
 import { RecruiterPanel } from "@/components/panels/RecruiterPanel";
 import { SkillsPanel } from "@/components/panels/SkillsPanel";
+import { ThemePanel } from "@/components/panels/ThemePanel";
 import { WelcomePanel } from "@/components/panels/WelcomePanel";
 import type { PanelRef } from "@/lib/terminal/types";
 
@@ -47,6 +52,16 @@ export function PanelRenderer({ panel }: { panel: PanelRef }) {
       return <ChatPanel id={id} />;
     case "neofetch":
       return <NeofetchPanel id={id} />;
+    case "theme":
+      return <ThemePanel id={id} />;
+    case "games":
+      return <GamesPanel id={id} />;
+    case "snake":
+      return <SnakeGame id={id} />;
+    case "tictactoe":
+      return <TicTacToeGame id={id} />;
+    case "2048":
+      return <Game2048 id={id} />;
     default:
       return null;
   }

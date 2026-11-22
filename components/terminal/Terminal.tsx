@@ -9,6 +9,7 @@ import { TerminalContext, type TwinInfo } from "@/components/terminal/context";
 import { panelDomId } from "@/components/terminal/PanelRenderer";
 import { profile } from "@/data/profile";
 import { site } from "@/data/site";
+import { applyTheme } from "@/lib/theme";
 import { OFFLINE_MESSAGE } from "@/lib/ai/offline";
 import { buildChatPayload } from "@/lib/terminal/chat-payload";
 import { runCommand } from "@/lib/terminal/execute";
@@ -303,6 +304,9 @@ export function Terminal() {
       if (result.download) {
         triggerDownload(result.download, site.resumeFileName);
       }
+      if (result.theme) {
+        applyTheme(result.theme);
+      }
       if (result.announce) setAnnouncement(result.announce);
 
       const resultPanel = result.entries.find((entry) => entry.kind === "panel");
@@ -320,7 +324,9 @@ export function Terminal() {
       setInput("");
       setHistoryIndex(null);
       draft.current = "";
-      window.setTimeout(() => focusInput(), 0);
+      if (result.focus !== "panel") {
+        window.setTimeout(() => focusInput(), 0);
+      }
     },
     [focusInput, revealPanel],
   );
@@ -505,6 +511,7 @@ export function Terminal() {
             twin={twin}
             onRecruiter={() => run("recruiter")}
             onChat={() => run("chat")}
+            onTheme={() => run("theme")}
           />
 
           <div className="relative flex min-h-0 flex-1 flex-col">

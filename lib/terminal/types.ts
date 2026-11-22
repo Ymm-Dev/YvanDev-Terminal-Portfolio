@@ -1,3 +1,5 @@
+import type { ThemeName } from "@/lib/theme";
+
 export type Tone = "default" | "muted" | "ok" | "warn" | "error" | "accent";
 
 export type PanelRef =
@@ -12,7 +14,12 @@ export type PanelRef =
   | { type: "contact" }
   | { type: "recruiter" }
   | { type: "chat" }
-  | { type: "neofetch" };
+  | { type: "neofetch" }
+  | { type: "theme" }
+  | { type: "games" }
+  | { type: "snake" }
+  | { type: "tictactoe" }
+  | { type: "2048" };
 
 export type PanelType = PanelRef["type"];
 
@@ -67,6 +74,9 @@ export interface CommandResult {
   clear?: boolean;
   announce?: string;
   download?: string;
+  theme?: ThemeName;
+  /** Keep focus where it is instead of returning it to the command input. */
+  focus?: "terminal" | "panel";
   mode?: "shell" | "chat";
   hash?: string;
 }
