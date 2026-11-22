@@ -11,6 +11,7 @@ import { GamesPanel } from "@/components/panels/GamesPanel";
 import { DirectionPad } from "@/components/games/DirectionPad";
 import { SnakeGame } from "@/components/games/SnakeGame";
 import { TicTacToeGame } from "@/components/games/TicTacToeGame";
+import { Game2048 } from "@/components/games/Game2048";
 import { RecruiterPanel } from "@/components/panels/RecruiterPanel";
 import { PrintBrief } from "@/components/PrintBrief";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -302,6 +303,30 @@ describe("tic-tac-toe panel", () => {
         expect(button).toHaveTextContent(/^\s*$/);
       }
     }
+  });
+});
+
+describe("2048 panel", () => {
+  it("autofocuses the board and merges tiles with the arrow keys", () => {
+    render(<Game2048 rng={() => 0} />);
+    const board = screen.getByRole("group", { name: "2048 board" });
+    expect(board).toHaveFocus();
+    expect(screen.getByText(/score 0/i)).toBeInTheDocument();
+
+    fireEvent.keyDown(board, { key: "ArrowRight" });
+    expect(screen.getByText(/score 4/i)).toBeInTheDocument();
+    expect(screen.getByTestId("2048-status")).toHaveTextContent(/playing/i);
+  });
+
+  it("resets score when starting a new game", async () => {
+    render(<Game2048 rng={() => 0} />);
+    const board = screen.getByRole("group", { name: "2048 board" });
+    fireEvent.keyDown(board, { key: "ArrowRight" });
+    expect(screen.getByText(/score 4/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /new game/i }));
+    expect(screen.getByText(/score 0/i)).toBeInTheDocument();
+    expect(screen.getByTestId("2048-status")).toHaveTextContent(/playing/i);
   });
 });
 

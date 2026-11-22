@@ -6,6 +6,7 @@ import { ContactPanel } from "@/components/panels/ContactPanel";
 import { EducationPanel } from "@/components/panels/EducationPanel";
 import { ExperiencePanel } from "@/components/panels/ExperiencePanel";
 import { GamesPanel } from "@/components/panels/GamesPanel";
+import { Game2048 } from "@/components/games/Game2048";
 import { SnakeGame } from "@/components/games/SnakeGame";
 import { TicTacToeGame } from "@/components/games/TicTacToeGame";
 import { HelpPanel } from "@/components/panels/HelpPanel";
@@ -59,6 +60,8 @@ export function PanelRenderer({ panel }: { panel: PanelRef }) {
       return <SnakeGame id={id} />;
     case "tictactoe":
       return <TicTacToeGame id={id} />;
+    case "2048":
+      return <Game2048 id={id} />;
     default:
       return null;
   }
