@@ -256,7 +256,7 @@ describe("snake panel", () => {
     board.focus();
     await userEvent.keyboard(" ");
     expect(screen.getByTestId("snake-status")).toHaveTextContent("paused");
-    expect(screen.getByText(/score 0/i)).toBeInTheDocument();
+    expect(screen.getByTestId("snake-score")).toHaveTextContent("score 0");
   });
 });
 
@@ -311,10 +311,10 @@ describe("2048 panel", () => {
     render(<Game2048 rng={() => 0} />);
     const board = screen.getByRole("group", { name: "2048 board" });
     expect(board).toHaveFocus();
-    expect(screen.getByText(/score 0/i)).toBeInTheDocument();
+    expect(screen.getByTestId("2048-score")).toHaveTextContent("score 0");
 
     fireEvent.keyDown(board, { key: "ArrowRight" });
-    expect(screen.getByText(/score 4/i)).toBeInTheDocument();
+    expect(screen.getByTestId("2048-score")).toHaveTextContent("score 4");
     expect(screen.getByTestId("2048-status")).toHaveTextContent(/playing/i);
   });
 
@@ -322,10 +322,10 @@ describe("2048 panel", () => {
     render(<Game2048 rng={() => 0} />);
     const board = screen.getByRole("group", { name: "2048 board" });
     fireEvent.keyDown(board, { key: "ArrowRight" });
-    expect(screen.getByText(/score 4/i)).toBeInTheDocument();
+    expect(screen.getByTestId("2048-score")).toHaveTextContent("score 4");
 
     await userEvent.click(screen.getByRole("button", { name: /new game/i }));
-    expect(screen.getByText(/score 0/i)).toBeInTheDocument();
+    expect(screen.getByTestId("2048-score")).toHaveTextContent("score 0");
     expect(screen.getByTestId("2048-status")).toHaveTextContent(/playing/i);
   });
 });

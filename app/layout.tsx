@@ -75,7 +75,7 @@ const personJsonLd = {
 };
 
 // Runs before the shell renders so a saved theme never flashes Midnight first.
-const themeScript = `(function(){try{var k=${JSON.stringify(THEME_STORAGE_KEY)};var v=window.localStorage.getItem(k);var names=${JSON.stringify(THEME_NAMES)};var colors=${JSON.stringify(THEME_BACKGROUNDS)};if(v&&names.indexOf(v)>-1&&v!=="midnight"){document.documentElement.dataset.theme=v}if(v&&colors[v]){var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",colors[v])}}}catch(e){}})();`;
+const themeScript = `(function(){try{var k=${JSON.stringify(THEME_STORAGE_KEY)};var v=window.localStorage.getItem(k);var names=${JSON.stringify(THEME_NAMES)};var colors=${JSON.stringify(THEME_BACKGROUNDS)};if(v&&names.indexOf(v)>-1&&v!=="midnight"){document.documentElement.dataset.theme=v}if(v&&colors[v]){var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",colors[v])}}}catch(e){}try{requestAnimationFrame(function(){requestAnimationFrame(function(){document.documentElement.setAttribute("data-theme-ready","")})})}catch(e){}})();`;
 
 export default function RootLayout({
   children,

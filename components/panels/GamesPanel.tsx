@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PanelFrame } from "@/components/ui/PanelFrame";
 import { useTerminal } from "@/components/terminal/context";
 import { readBestScore, type ScoreGame } from "@/lib/games/storage";
@@ -39,14 +39,10 @@ const games: ArcadeCard[] = [
 
 export function GamesPanel({ id }: { id?: string }) {
   const { run } = useTerminal();
-  const [best, setBest] = useState<Partial<Record<ScoreGame, number>>>({});
-
-  useEffect(() => {
-    setBest({
-      snake: readBestScore("snake"),
-      "2048": readBestScore("2048"),
-    });
-  }, []);
+  const [best] = useState<Partial<Record<ScoreGame, number>>>(() => ({
+    snake: readBestScore("snake"),
+    "2048": readBestScore("2048"),
+  }));
 
   return (
     <PanelFrame

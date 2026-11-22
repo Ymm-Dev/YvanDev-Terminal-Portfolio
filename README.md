@@ -2,7 +2,7 @@
 
 A developer portfolio that behaves like a shell. Visitors type commands (or click
 shortcuts) and the output is rich, interactive HTML panels: projects, experience,
-skills, a recruiter brief, and an AI twin.
+skills, a recruiter brief, an AI twin, four themes, and a small arcade.
 
 Source: <https://github.com/Ymm-Dev/YvanDev-Terminal-Portfolio>
 Live: <https://ymmdev-terminal.vercel.app/>
@@ -10,12 +10,17 @@ Live: <https://ymmdev-terminal.vercel.app/>
 - **Terminal-first.** There is no separate "normal" portfolio page. The shell is
   the interface; the panels are the content.
 - **Every command is clickable.** Visitors never need to type to reach a section.
+- **Four complete themes.** Midnight, Paper, Amber, and Cobalt. The choice is
+  saved locally and applied before the first paint, so reloads never flash the
+  wrong palette.
+- **A terminal arcade.** Snake, Tic-Tac-Toe against a perfect minimax opponent,
+  and 2048 — all playable with keyboard, pointer, or touch.
 - **AI twin with an honest failure mode.** With a Gemini key the twin streams
   answers from Yvan's profile. Without a key it says so plainly and points to
   `contact` — it never fakes a conversation.
 - **Accessible and printable.** Keyboard navigation, skip link, live
-  announcements, `prefers-reduced-motion` support, and a dedicated one-page
-  print brief.
+  announcements, `prefers-reduced-motion` support, WCAG AA contrast in every
+  theme, and a dedicated one-page print brief.
 
 ## Tech stack
 
@@ -48,8 +53,9 @@ npm start           # serve the production build
 ### UI smoke checks (optional)
 
 `scripts/verify.mjs` drives Firefox through the release criteria: no horizontal
-overflow at 320–1440px, keyboard-only operation, reduced motion, cold deep
-links, print output, the offline twin, and simulated 429/502 responses.
+overflow at 320–1440px, keyboard-only operation, theme persistence and contrast,
+arcade keyboard/touch input, reduced motion, cold deep links, print output, the
+offline twin, and simulated 429/502 responses.
 
 ```bash
 npx playwright install firefox   # once
@@ -58,6 +64,79 @@ npm run test:ui                  # terminal 2
 ```
 
 Set `BASE` to test another origin, for example `BASE=http://localhost:3100 npm run test:ui`.
+
+## Themes
+
+Four palettes ship with the shell:
+
+| Theme | Command | Character |
+| --- | --- | --- |
+| Midnight | `theme midnight` | The original dark shell (default). |
+| Paper | `theme paper` | Warm light paper with dark ink. |
+| Amber | `theme amber` | Near-black CRT with amber text. |
+| Cobalt | `theme cobalt` | Deep blue-black with icy, high-contrast text. |
+
+Run `theme` with no argument (or use the title-bar control) to open the picker.
+Each card previews its palette and marks the current theme. The title-bar button
+is icon-first on small screens and includes the current theme in its accessible
+name.
+
+The choice is stored in `localStorage` under `yvan-portfolio-theme` and applied
+by a tiny inline script before the first paint. `applyTheme()` also updates
+`color-scheme` and `<meta name="theme-color">`, so browser chrome follows the
+palette. If storage is unavailable, the theme still applies for the session and
+the page never crashes. `prefers-reduced-motion` removes the 150 ms color
+transition. Body, muted, accent, and band text meet WCAG AA contrast in every
+theme, which the browser suite verifies.
+
+## Arcade
+
+| Command | Game |
+| --- | --- |
+| `games` (also `arcade`, `play`) | The arcade panel with all three games. |
+| `snake` | Snake on a 20 × 14 grid. |
+| `tictactoe` (also `ttt`) | Tic-Tac-Toe. You are X, and the shell uses minimax. |
+| `2048` (also `twenty48`) | 2048 on a 4 × 4 board. |
+
+Games open as inline panels in the scrollback — no modal, no second route. The
+board takes focus when the panel opens, so arrow keys and WASD steer instead of
+moving the terminal history or the page. Every game also exposes real buttons
+and a 44 px direction pad where relevant, so pointer and touch play work without
+a keyboard.
+
+- **Snake:** Start, steer, eat, grow. Space pauses; Escape pauses and returns
+  focus to the prompt. The game pauses itself when the tab is hidden or the
+  window loses focus.
+- **Tic-Tac-Toe:** Nine labelled buttons in a 3 × 3 grid. You always move first;
+  the shell answers after a short delay. Wins, draws, and losses are tallied for
+  the session.
+- **2048:** Equal tiles merge once per move and score their face value. Reaching
+  2048 announces a win but keeps the board playable; a locked board ends the
+  round. No tile-slide animation is required to follow the game.
+
+Snake and 2048 best scores are stored locally under `yvan-best-snake` and
+`yvan-best-2048`. Nothing else is saved: no in-progress games, accounts,
+leaderboards, telemetry, or network play. Game state resets on reload.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `help` | List every command by category. |
+| `about`, `skills`, `projects`, `experience`, `education`, `contact` | Portfolio panels. |
+| `projects <slug>` | Open one project detail. |
+| `recruiter` | The 40-second recruiter brief. |
+| `resume` | Download the PDF résumé. |
+| `chat` (also `ai`, `ask`) | Talk to the AI twin. |
+| `theme [name]` | Open the picker or apply a named theme. |
+| `games`, `snake`, `tictactoe`, `2048` | The arcade. |
+| `whoami`, `neofetch`, `ls`, `history` | Profile and shell information. |
+| `clear` | Clear the scrollback. |
+| `coffee`, `sudo hire-me` | Easter eggs. |
+
+`↑`/`↓` recall history, `Tab` completes commands, and `Ctrl+L` clears the input.
+`help` stays the source of truth, and every command is also clickable below the
+prompt.
 
 ## AI twin configuration
 
@@ -140,11 +219,15 @@ app/
 components/
   terminal/            shell UI, state, panels, context
   panels/              one component per command output
+  games/               Snake, Tic-Tac-Toe, 2048, shared D-pad
+  theme/               hook that tracks the applied theme
   ui/                  frame, chips, copy button, badges
 data/                  profile facts and site config
 lib/
   ai/                  prompt, provider, Gemini, offline, limits, validation
+  games/               pure game engines, directions, best-score storage
   terminal/            types, reducer, commands, routing, suggestions
+  theme.ts             theme registry, persistence, pre-paint helpers
 ```
 
 ## Deployment notes
@@ -155,7 +238,9 @@ lib/
   Graph URLs are correct.
 - Do not create a `NEXT_PUBLIC_GEMINI_API_KEY`; it would be bundled into the
   client.
-- No database, auth, analytics, or contact-form backend is used.
+- No database, auth, analytics, or contact-form backend is used. Theme choice
+  and game best scores stay in the visitor's browser; nothing game-related is
+  sent to the server.
 - The live site is <https://ymmdev-terminal.vercel.app/>.
 
 ## License

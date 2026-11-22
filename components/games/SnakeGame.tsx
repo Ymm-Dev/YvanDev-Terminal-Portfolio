@@ -24,19 +24,12 @@ const STATUS_TEXT: Record<SnakeState["status"], string> = {
 
 export function SnakeGame({ id }: { id?: string }) {
   const [state, setState] = useState<SnakeState>(() => createSnake());
-  const [best, setBest] = useState(0);
-  const [announcement, setAnnouncement] = useState(
-    "Snake ready. Press Start, then steer with arrow keys or WASD.",
-  );
+  const [best, setBest] = useState(() => readBestScore("snake"));
   const boardRef = useRef<HTMLDivElement>(null);
-  const bestRef = useRef(0);
-  const previousStatus = useRef<SnakeState["status"]>("idle");
+  const bestRef = useRef(best);
   const hintId = useId();
 
   useEffect(() => {
-    const stored = readBestScore("snake");
-    bestRef.current = stored;
-    setBest(stored);
     boardRef.current?.focus();
   }, []);
 
@@ -53,22 +46,8 @@ export function SnakeGame({ id }: { id?: string }) {
   useEffect(() => {
     if (state.score <= bestRef.current) return;
     bestRef.current = state.score;
-    const saved = saveBestScore("snake", state.score);
-    setBest(saved);
-    setAnnouncement(`New best score: ${saved}.`);
+    setBest(saveBestScore("snake", state.score));
   }, [state.score]);
-
-  useEffect(() => {
-    if (state.status === previousStatus.current) return;
-    if (state.status === "over") {
-      setAnnouncement(`Game over. Score ${state.score}. Restart to play again.`);
-    } else if (state.status === "paused") {
-      setAnnouncement("Snake paused.");
-    } else if (state.status === "running") {
-      setAnnouncement("Snake running.");
-    }
-    previousStatus.current = state.status;
-  }, [state.status, state.score]);
 
   useEffect(() => {
     const pause = () => setState((current) => pauseSnake(current));
@@ -85,7 +64,6 @@ export function SnakeGame({ id }: { id?: string }) {
 
   const restart = () => {
     setState(startSnake(createSnake()));
-    setAnnouncement("New game. Steer with arrow keys or WASD.");
     boardRef.current?.focus();
   };
 
@@ -159,6 +137,19 @@ export function SnakeGame({ id }: { id?: string }) {
           ? "Play again"
           : "Start";
 
+  const baseAnnouncement =
+    state.status === "over"
+      ? `Game over. Score ${state.score}. Restart to play again.`
+      : state.status === "paused"
+        ? "Snake paused."
+        : state.status === "running"
+          ? `Snake running. Score ${state.score}.`
+          : "Snake ready. Press Start, then steer with arrow keys or WASD.";
+  const announcement =
+    state.status !== "over" && state.score > 0 && state.score >= best
+      ? `${baseAnnouncement} New best score: ${best}.`
+      : baseAnnouncement;
+
   return (
     <PanelFrame
       id={id}
@@ -168,7 +159,9 @@ export function SnakeGame({ id }: { id?: string }) {
     >
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
-          <span className="text-ink">score {state.score}</span>
+          <span className="text-ink" data-testid="snake-score">
+            score {state.score}
+          </span>
           <span className="text-faint">best {best}</span>
           <span className="text-muted" data-testid="snake-status">
             {STATUS_TEXT[state.status]}

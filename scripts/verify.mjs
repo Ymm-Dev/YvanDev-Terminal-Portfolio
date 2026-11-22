@@ -5,6 +5,35 @@ const browser = await firefox.launch();
 const failures = [];
 const notes = [];
 
+const THEMES = {
+  midnight: { bg: "#0a0b0d", scheme: "dark" },
+  paper: { bg: "#f4efe4", scheme: "light" },
+  amber: { bg: "#100d08", scheme: "dark" },
+  cobalt: { bg: "#070b14", scheme: "dark" },
+};
+
+function luminance(hex) {
+  const value = String(hex).trim().replace(/^#/, "");
+  if (!/^[0-9a-f]{6}$/i.test(value)) return null;
+  const channels = [0, 2, 4]
+    .map((offset) => parseInt(value.slice(offset, offset + 2), 16) / 255)
+    .map((channel) =>
+      channel <= 0.03928
+        ? channel / 12.92
+        : ((channel + 0.055) / 1.055) ** 2.4,
+    );
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+function contrastRatio(foreground, background) {
+  const a = luminance(foreground);
+  const b = luminance(background);
+  if (a === null || b === null) return null;
+  const light = Math.max(a, b);
+  const dark = Math.min(a, b);
+  return (light + 0.05) / (dark + 0.05);
+}
+
 function assert(condition, message) {
   if (!condition) failures.push(message);
 }
@@ -39,7 +68,18 @@ for (const width of [320, 375, 390, 768, 1024, 1440]) {
   let size = await overflow(page);
   assert(size.doc <= size.win + 1, `${width}px home overflows (${size.doc} > ${size.win})`);
 
-  for (const command of ["recruiter", "projects", "about", "experience", "help"]) {
+  for (const command of [
+    "recruiter",
+    "projects",
+    "about",
+    "experience",
+    "help",
+    "theme",
+    "games",
+    "snake",
+    "tictactoe",
+    "2048",
+  ]) {
     await page.fill("#terminal-input", command);
     await page.press("#terminal-input", "Enter");
     await page.waitForTimeout(450);
@@ -173,6 +213,187 @@ for (const width of [320, 375, 390, 768, 1024, 1440]) {
   await context.close();
 }
 
+/* ------------------------------ themes ------------------------------ */
+
+{
+  const { context, page, errors } = await pageAt(1280, 900);
+  await page.goto(`${BASE}?noBoot=1`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(400);
+
+  for (const [name, expected] of Object.entries(THEMES)) {
+    await page.fill("#terminal-input", `theme ${name}`);
+    await page.press("#terminal-input", "Enter");
+    await page.waitForTimeout(250);
+
+    const state = await page.evaluate(() => {
+      const style = getComputedStyle(document.documentElement);
+      const tokens = {};
+      for (const token of ["bg", "surface-2", "ink", "muted", "green"]) {
+        tokens[token] = style.getPropertyValue(`--color-${token}`).trim();
+      }
+      return {
+        attr: document.documentElement.dataset.theme ?? "midnight",
+        scheme: style.colorScheme,
+        stored: window.localStorage.getItem("yvan-portfolio-theme"),
+        meta: document
+          .querySelector('meta[name="theme-color"]')
+          ?.getAttribute("content"),
+        tokens,
+      };
+    });
+
+    assert(state.attr === name, `theme ${name}: data-theme is ${state.attr}`);
+    assert(
+      state.scheme === expected.scheme,
+      `theme ${name}: color-scheme is ${state.scheme}`,
+    );
+    assert(state.stored === name, `theme ${name}: stored ${state.stored}`);
+    assert(
+      state.meta === expected.bg,
+      `theme ${name}: meta theme-color is ${state.meta}`,
+    );
+
+    const pairs = [
+      ["body", state.tokens.ink, state.tokens.bg],
+      ["muted", state.tokens.muted, state.tokens.bg],
+      ["accent", state.tokens.green, state.tokens.bg],
+      ["band", state.tokens.ink, state.tokens["surface-2"]],
+    ];
+    for (const [label, foreground, background] of pairs) {
+      const ratio = contrastRatio(foreground, background);
+      assert(
+        ratio !== null && ratio >= 4.5,
+        `theme ${name}: ${label} contrast is ${ratio}`,
+      );
+    }
+  }
+
+  // The saved theme is on <html> before the app hydrates: reload, then read it
+  // at DOMContentLoaded without waiting for the network to go idle.
+  await page.fill("#terminal-input", "theme paper");
+  await page.press("#terminal-input", "Enter");
+  await page.waitForTimeout(250);
+  await page.goto(`${BASE}?noBoot=1`, { waitUntil: "domcontentloaded" });
+  const early = await page.evaluate(() => ({
+    attr: document.documentElement.dataset.theme,
+    bg: getComputedStyle(document.body).backgroundColor,
+  }));
+  assert(early.attr === "paper", `pre-paint theme is ${early.attr}`);
+  assert(
+    early.bg === "rgb(244, 239, 228)",
+    `pre-paint body background is ${early.bg}`,
+  );
+  await page.waitForSelector("#terminal-input", { timeout: 5000 });
+
+  // The title-bar control opens the picker.
+  await page.locator('button[aria-label^="Change theme"]').click();
+  await page.waitForTimeout(400);
+  assert(
+    (await page.locator("#panel-theme").count()) === 1,
+    "title-bar theme control did not open the panel",
+  );
+
+  // Activating a card applies the theme and keeps focus inside the panel.
+  await page.locator('#panel-theme button[data-theme="amber"]').click();
+  await page.waitForTimeout(300);
+  const afterCard = await page.evaluate(() => ({
+    theme: document.documentElement.dataset.theme,
+    inPanel: Boolean(document.activeElement?.closest("#panel-theme")),
+  }));
+  assert(afterCard.theme === "amber", `theme card applied ${afterCard.theme}`);
+  assert(afterCard.inPanel, "focus left the theme panel after activation");
+
+  assert(errors.length === 0, `theme console errors: ${errors.join(" | ")}`);
+  notes.push("themes ok");
+  await context.close();
+}
+
+/* ------------------------------ arcade ------------------------------ */
+
+{
+  const { context, page, errors } = await pageAt(1280, 900);
+  await page.goto(`${BASE}?noBoot=1`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(400);
+
+  await page.fill("#terminal-input", "games");
+  await page.press("#terminal-input", "Enter");
+  await page.waitForTimeout(400);
+  assert(
+    (await page.locator("#panel-games").count()) === 1,
+    "games did not open the arcade",
+  );
+  for (const label of ["Snake", "Tic-Tac-Toe", "2048"]) {
+    assert(
+      (await page.locator(`#panel-games button:has-text("${label}")`).count()) >= 1,
+      `arcade card missing: ${label}`,
+    );
+  }
+
+  // Snake: starts, steers, pauses with Space, and releases focus with Escape.
+  await page.locator('#panel-games button:has-text("Snake")').click();
+  await page.waitForTimeout(400);
+  assert(
+    (await page.locator("#panel-snake").count()) === 1,
+    "snake panel did not open",
+  );
+  assert(
+    (await page.evaluate(() => document.activeElement?.getAttribute("aria-label"))) ===
+      "Snake board",
+    "snake board did not take focus",
+  );
+  await page.locator("#panel-snake button", { hasText: /^Start$/ }).click();
+  await page.waitForTimeout(150);
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(250);
+  await page.keyboard.press(" ");
+  await page.waitForTimeout(150);
+  assert(
+    (await page.locator("#panel-snake [data-testid='snake-status']").textContent()) ===
+      "paused",
+    "space did not pause snake",
+  );
+  await page.keyboard.press("Escape");
+  assert(
+    (await page.evaluate(() => document.activeElement?.id)) === "terminal-input",
+    "Escape did not release snake focus",
+  );
+
+  // Tic-Tac-Toe: the visitor moves and the shell answers.
+  await page.fill("#terminal-input", "tictactoe");
+  await page.press("#terminal-input", "Enter");
+  await page.waitForTimeout(400);
+  await page
+    .locator('#panel-tictactoe button[aria-label^="Row 2, column 2"]')
+    .click();
+  await page.waitForTimeout(700);
+  const marks = await page
+    .locator("#panel-tictactoe [aria-label^='Row']")
+    .allTextContents();
+  assert(
+    marks.includes("X") && marks.includes("O"),
+    `tic-tac-toe marks: ${marks.join(",")}`,
+  );
+
+  // 2048: try each direction until the board or score changes.
+  await page.fill("#terminal-input", "2048");
+  await page.press("#terminal-input", "Enter");
+  await page.waitForTimeout(400);
+  const before = await page.locator("#panel-2048").innerText();
+  for (const key of ["ArrowLeft", "ArrowDown", "ArrowRight", "ArrowUp"]) {
+    await page.keyboard.press(key);
+    await page.waitForTimeout(150);
+    if ((await page.locator("#panel-2048").innerText()) !== before) break;
+  }
+  assert(
+    (await page.locator("#panel-2048").innerText()) !== before,
+    "2048 ignored direction keys",
+  );
+
+  assert(errors.length === 0, `arcade console errors: ${errors.join(" | ")}`);
+  notes.push("arcade ok");
+  await context.close();
+}
+
 /* ------------------------------ boot -------------------------------- */
 
 {
@@ -224,6 +445,30 @@ for (const width of [320, 375, 390, 768, 1024, 1440]) {
   const welcome = await page.locator("#panel-welcome").count();
   assert(welcome === 1, "reduced-motion load did not land on welcome");
   assert(bootLine === 0, "reduced-motion load still typed the boot lines");
+
+  // Themes and games remain usable without motion.
+  await page.fill("#terminal-input", "theme paper");
+  await page.press("#terminal-input", "Enter");
+  await page.waitForTimeout(250);
+  assert(
+    (await page.evaluate(() => document.documentElement.dataset.theme)) === "paper",
+    "reduced-motion theme change did not apply",
+  );
+
+  await page.fill("#terminal-input", "2048");
+  await page.press("#terminal-input", "Enter");
+  await page.waitForTimeout(400);
+  const before = await page.locator("#panel-2048").innerText();
+  for (const key of ["ArrowLeft", "ArrowDown", "ArrowRight", "ArrowUp"]) {
+    await page.keyboard.press(key);
+    await page.waitForTimeout(150);
+    if ((await page.locator("#panel-2048").innerText()) !== before) break;
+  }
+  assert(
+    (await page.locator("#panel-2048").innerText()) !== before,
+    "reduced motion blocked 2048 input",
+  );
+
   notes.push("reduced motion ok");
   await context.close();
 }
@@ -245,6 +490,15 @@ for (const width of [320, 375, 390, 768, 1024, 1440]) {
     await page.locator("#panel-project-aqro").count() === 1,
     "#projects/aqro did not open the detail panel",
   );
+
+  for (const hash of ["#theme", "#games", "#snake", "#tictactoe", "#2048"]) {
+    await page.goto(`${BASE}${hash}`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(500);
+    assert(
+      (await page.locator(`#panel-${hash.slice(1)}`).count()) === 1,
+      `${hash} did not open cold`,
+    );
+  }
   // A same-document hash change to an unknown route is ignored by design, so
   // check the cold-load path on a fresh document.
   await page.goto(`${BASE}?cold=1#nonsense`, { waitUntil: "networkidle" });

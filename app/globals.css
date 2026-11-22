@@ -30,6 +30,14 @@
     "Segoe UI", sans-serif;
 }
 
+/* Default palette before any theme attribute exists. The palette blocks below
+   override these variables; the html[data-theme] rules keep color-scheme
+   correct even when the bundler reorders the blocks. */
+:root {
+  color-scheme: dark;
+  --radius: 4px;
+}
+
 /* Card previews set data-theme on themselves; Midnight needs an explicit block
    so it renders its own palette even while another theme is active. */
 [data-theme="midnight"] {
@@ -135,9 +143,17 @@
   --color-inset-to: #0a101c;
 }
 
-:root {
+/* `color-scheme` on <html> must beat the default :root rule regardless of how
+   the bundler orders the palette blocks. Card previews keep the lower-
+   specificity [data-theme] rules, so these target html explicitly. */
+html[data-theme="paper"] {
+  color-scheme: light;
+}
+
+html[data-theme="midnight"],
+html[data-theme="amber"],
+html[data-theme="cobalt"] {
   color-scheme: dark;
-  --radius: 4px;
 }
 
 * {
@@ -296,12 +312,12 @@ a:hover {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  body,
-  .window,
-  .panel,
-  .panel-head,
-  .chip,
-  .tag {
+  html[data-theme-ready] body,
+  html[data-theme-ready] .window,
+  html[data-theme-ready] .panel,
+  html[data-theme-ready] .panel-head,
+  html[data-theme-ready] .chip,
+  html[data-theme-ready] .tag {
     transition:
       background-color 150ms ease,
       border-color 150ms ease,

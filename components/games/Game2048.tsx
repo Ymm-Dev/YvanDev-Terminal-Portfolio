@@ -42,18 +42,11 @@ export function Game2048({
     score: 0,
     status: "playing",
   }));
-  const [best, setBest] = useState(0);
-  const [announcement, setAnnouncement] = useState(
-    "2048 ready. Arrow keys or WASD slide the tiles.",
-  );
+  const [best, setBest] = useState(() => readBestScore("2048"));
   const boardRef = useRef<HTMLDivElement>(null);
-  const bestRef = useRef(0);
-  const previousStatus = useRef<Status>("playing");
+  const bestRef = useRef(best);
 
   useEffect(() => {
-    const stored = readBestScore("2048");
-    bestRef.current = stored;
-    setBest(stored);
     boardRef.current?.focus();
   }, []);
 
@@ -61,20 +54,7 @@ export function Game2048({
     if (game.score <= bestRef.current) return;
     bestRef.current = game.score;
     setBest(saveBestScore("2048", game.score));
-    setAnnouncement(`New best score: ${game.score}.`);
   }, [game.score]);
-
-  useEffect(() => {
-    if (game.status === previousStatus.current) return;
-    if (game.status === "won") {
-      setAnnouncement("You reached 2048. Keep going for a higher score.");
-    } else if (game.status === "over") {
-      setAnnouncement(
-        `Game over. Final score ${game.score}. Start a new game to play again.`,
-      );
-    }
-    previousStatus.current = game.status;
-  }, [game.status, game.score]);
 
   const move = (direction: Direction) => {
     setGame((current) => {
@@ -103,8 +83,6 @@ export function Game2048({
       score: 0,
       status: "playing",
     });
-    previousStatus.current = "playing";
-    setAnnouncement("New game. Slide tiles with arrow keys or WASD.");
     boardRef.current?.focus();
   };
 
@@ -122,6 +100,17 @@ export function Game2048({
       document.getElementById("terminal-input")?.focus();
     }
   };
+
+  const baseAnnouncement =
+    game.status === "over"
+      ? `Game over. Final score ${game.score}. Start a new game to play again.`
+      : game.status === "won"
+        ? `You reached 2048. Score ${game.score}. Keep going for a higher score.`
+        : `2048 playing. Score ${game.score}.`;
+  const announcement =
+    game.status !== "over" && game.score > 0 && game.score >= best
+      ? `${baseAnnouncement} New best score: ${best}.`
+      : baseAnnouncement;
 
   return (
     <PanelFrame
@@ -154,7 +143,9 @@ export function Game2048({
 
         <div className="flex flex-col items-start gap-2">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
-            <span className="text-ink">score {game.score}</span>
+            <span className="text-ink" data-testid="2048-score">
+              score {game.score}
+            </span>
             <span className="text-faint">best {best}</span>
             <span className="text-muted" data-testid="2048-status">
               {STATUS_TEXT[game.status]}
